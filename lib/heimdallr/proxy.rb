@@ -22,7 +22,7 @@ module Heimdallr
       @object.update_attributes(self.class.filter_attributes(attributes, @whitelist))
     end
 
-    def update_attributes(attributes)
+    def update_attributes!(attributes)
       @object.update_attributes!(self.class.filter_attributes(attributes, @whitelist))
     end
 
