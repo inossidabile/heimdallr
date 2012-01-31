@@ -1,3 +1,6 @@
+require "active_support"
+require "active_model"
+
 require "heimdallr/version"
 
 require "heimdallr/evaluator"
