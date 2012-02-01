@@ -29,9 +29,14 @@ module Heimdallr
 
       def create
         model.transaction do
-          params[model.name].each do |attributes|
-            model.new.to_proxy(security_context, :create).
-                update_attributes!(attributes)
+          if params.has_key? model.name.underscore
+            @model.new.to_proxy(security_context, :create).
+              update_attributes!(params[model.name.underscore])
+          else
+            @resources.each_with_index do |resource, index|
+              @model.new.to_proxy(security_context, :create).
+                update_attributes!(params[model.name.underscore.pluralize][index])
+            end
           end
         end
 
@@ -50,9 +55,14 @@ module Heimdallr
 
       def update
         model.transaction do
-          @resources.each_with_index do |resource, index|
-            resource.to_proxy(security_context, :update).
+          if params.has_key? model.name.underscore
+            @resources.first.to_proxy(security_context, :update).
+              update_attributes!(params[model.name.underscore])
+          else
+            @resources.each_with_index do |resource, index|
+              resource.to_proxy(security_context, :update).
               update_attributes!(params[model.name.underscore.pluralize][index])
+            end
           end
         end
 
