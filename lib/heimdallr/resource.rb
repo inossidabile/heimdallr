@@ -91,12 +91,12 @@ module Heimdallr
         self.model.scoped
       end
 
-      def load_one_resource
-        @resource  = scoped_model.find(params[:id])
+      def load_all_resources
+        @resources = scoped_model
       end
 
-      def load_all_resources
-        @resources = scoped_model.scoped
+      def load_one_resource
+        @resource  = scoped_model.find(params[:id])
       end
 
       def load_referenced_resources
