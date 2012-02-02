@@ -1,5 +1,19 @@
 module Heimdallr
   module Model
+    def to_proxy(context, action)
+      if self.class.restricted?
+        Proxy.new(context, action, self)
+      else
+        self
+      end
+    end
+
+    def validate_action(context, action)
+      if self.class.restricted?
+        self.class.restrictions(context).validate(action, self)
+      end
+    end
+
     extend ActiveSupport::Concern
 
     module ClassMethods
@@ -13,22 +27,6 @@ module Heimdallr
 
       def restrictions(context)
         @restrictions.evaluate(context)
-      end
-    end
-
-    module InstanceMethods
-      def to_proxy(context, action)
-        if self.class.restricted?
-          Proxy.new(context, action, self)
-        else
-          self
-        end
-      end
-
-      def validate_action(context, action)
-        if self.class.restricted?
-          self.class.restrictions(context).validate(action, self)
-        end
       end
     end
   end
