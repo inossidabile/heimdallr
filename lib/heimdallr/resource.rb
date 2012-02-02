@@ -98,7 +98,7 @@ module Heimdallr
       attr_reader :model
 
       def resource_for(model, options={})
-        @model = model.to_s.capitalize.constantize
+        @model = model.to_s.camelize.constantize
 
         before_filter :load_all_resources,          only: [ :index ].concat(options[:all] || [])
         before_filter :load_one_resource,           only: [ :show  ].concat(options[:member] || [])
