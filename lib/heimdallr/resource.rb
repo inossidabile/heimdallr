@@ -30,11 +30,11 @@ module Heimdallr
       def create
         model.transaction do
           if params.has_key? model.name.underscore
-            @model.new.to_proxy(security_context, :create).
+            scoped_model.new.to_proxy(security_context, :create).
               update_attributes!(params[model.name.underscore])
           else
             @resources.each_with_index do |resource, index|
-              @model.new.to_proxy(security_context, :create).
+              scoped_model.new.to_proxy(security_context, :create).
                 update_attributes!(params[model.name.underscore.pluralize][index])
             end
           end
@@ -87,16 +87,20 @@ module Heimdallr
         self.class.model
       end
 
+      def scoped_model
+        self.model.scoped
+      end
+
       def load_one_resource
-        @resource  = model.find(params[:id])
+        @resource  = scoped_model.find(params[:id])
       end
 
       def load_all_resources
-        @resources = model.scoped
+        @resources = scoped_model.scoped
       end
 
       def load_referenced_resources
-        @resources = model.find(params[:id].split(','))
+        @resources = scoped_model.find(params[:id].split(','))
       end
 
       def render_modified_resources

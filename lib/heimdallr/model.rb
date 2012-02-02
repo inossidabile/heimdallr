@@ -12,7 +12,7 @@ module Heimdallr
       end
 
       def restrictions(context)
-        @restrictions.evaluate(context) if @restrictions
+        @restrictions.evaluate(context)
       end
     end
 
