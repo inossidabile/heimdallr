@@ -1,5 +1,5 @@
 module Heimdallr
-  class Proxy
+  class Proxy::Record
     def initialize(context, action, object)
       @context, @action, @object = context, action, object
 

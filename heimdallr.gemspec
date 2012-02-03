@@ -10,7 +10,7 @@ Gem::Specification.new do |s|
   s.homepage    = "http://github.com/roundlake/heimdallr"
   s.summary     = %q{Heimdallr is an ActiveModel extension which provides object- and field-level access control.}
   s.description = %q{Heimdallr aims to provide an easy to configure and efficient object- and field-level access
- control solution, reusing proven patterns from gems like CanCan and allowing one to control permissions in a very
+ control solution, reusing proven patterns from gems like CanCan and allowing one to manage permissions in a very
  fine-grained manner.}
 
   s.rubyforge_project = "heimdallr"

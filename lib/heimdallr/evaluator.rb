@@ -1,35 +1,24 @@
 module Heimdallr
+  # Evaluator is a DSL for managing permissions on records with the field granularity.
+  # It works by evaluating a block of code on a given _security context_.
+  #
+  # The default action is to forbid everything--that is, Heimdallr security policy
+  # is whitelisting safe actions, not blacklisting unsafe ones. This is by design
+  # and is not going to change.
+  #
+  # The DSL mainly consists of two functions, can and cannot
   class Evaluator
     attr_reader :whitelist, :validations
 
-    def initialize(model_class, &block)
+    # Create a new Evaluator for the ActiveModel-descending class +model_class+,
+    # and use +block+ to infer restrictions for any security context passed.
+    def initialize(model_class, block)
       @model_class, @block = model_class, block
 
       @whitelist = @validations = nil
       @last_context = nil
     end
 
-    def evaluate(context)
-      if context != @last_context
-        @whitelist   = Hash.new { [] }
-        @validations = Hash.new { [] }
-
-        instance_exec context, &block
-
-        @whitelist.freeze
-        @validations.freeze
-
-        @last_context = context
-      end
-
-      self
-    end
-
-    def validate(action, record)
-      @validations[action].each do |validator|
-        validator.validate(record)
-      end
-    end
 
     def can(actions, fields=@model_class.attribute_names)
       actions = Array(actions)
@@ -53,6 +42,28 @@ module Heimdallr
 
       actions.each do |action|
         @whitelist[action] -= fields
+      end
+    end
+
+    def evaluate(context)
+      if context != @last_context
+        @whitelist   = Hash.new { [] }
+        @validations = Hash.new { [] }
+
+        instance_exec context, &block
+
+        @whitelist.freeze
+        @validations.freeze
+
+        @last_context = context
+      end
+
+      self
+    end
+
+    def validate(action, record)
+      @validations[action].each do |validator|
+        validator.validate(record)
       end
     end
 
