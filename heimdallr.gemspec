@@ -1,10 +1,9 @@
 # -*- encoding: utf-8 -*-
 $:.push File.expand_path("../lib", __FILE__)
-require "heimdallr/version"
 
 Gem::Specification.new do |s|
   s.name        = "heimdallr"
-  s.version     = Heimdallr::VERSION
+  s.version     = "0.0.1"
   s.authors     = ["Peter Zotov"]
   s.email       = ["whitequark@whitequark.org"]
   s.homepage    = "http://github.com/roundlake/heimdallr"
