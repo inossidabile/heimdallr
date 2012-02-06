@@ -21,60 +21,92 @@ module Heimdallr
   # {#create}, {#update} and {#destroy} actions accept both a single object/ID or an array of
   # objects/IDs. The cardinal _modus
   #
+  # Resource expects a method named +security_context+ to be defined either in the controller itself
+  # or, more conveniently, in any of its ancestors, likely +ApplicationController+. This method can
+  # often be aliased to +current_user+.
+  #
   # Resource only works with ActiveRecord.
   #
   # See also {Resource::ClassMethods}.
   module Resource
+    # @group Actions
+
+    # +GET /resources+
+    #
+    # This action does nothing by itself, but it has a +load_all_resources+ filter attached.
     def index
     end
 
+    # +GET /resource/1+
+    #
+    # This action does nothing by itself, but it has a +load_one_resource+ filter attached.
     def show
     end
 
+    # +GET /resources/new+
+    #
+    # This action renders a JSON representation of fields whitelisted for creation.
+    # It does not include any fixtures or validations.
+    #
+    # @example
+    #   { 'fields': [ 'topic', 'content' ] }
     def new
       render :json => {
-        :fields => model.restrictions(security_context).whitelist[:create]
+        :fields => model.restrictions(security_context).allowed_fields[:create]
       }
     end
 
+    # +POST /resources+
+    #
+    # This action creates one or more records from the passed parameters.
+    # It can accept both arrays of attribute hashes and single attribute hashes.
+    #
+    # After the creation, it calls {#render_resources}.
+    #
+    # See also {#load_referenced_resources} and {#with_objects_from_params}.
     def create
-      model.transaction do
-        if params.has_key? model.name.underscore
-          scoped_model.new.to_proxy(security_context, :create).
-            update_attributes!(params[model.name.underscore])
-        else
-          @resources.each_with_index do |resource, index|
-            scoped_model.new.to_proxy(security_context, :create).
-              update_attributes!(params[model.name.underscore.pluralize][index])
-          end
-        end
+      with_objects_from_params do |attributes, index|
+        scoped_model.restrict(security_context).
+            create!(attributes)
       end
 
-      render_modified_resources
+      render_resources
     end
 
+    # +GET /resources/1/edit+
+    #
+    # This action renders a JSON representation of fields whitelisted for updating.
+    # See also {#new}.
     def edit
       render :json => {
-        :fields => model.restrictions(security_context).whitelist[:update]
+        :fields => model.restrict(security_context).allowed_fields[:update]
       }
     end
 
+    # +PUT /resources/1,2+
+    #
+    # This action updates one or more records from the passed parameters.
+    # It expects resource IDs to be passed comma-separated in <tt>params[:id]</tt>,
+    # and expects them to be in the order corresponding to the order of actual
+    # attribute hashes.
+    #
+    # After the updating, it calls {#render_resources}.
+    #
+    # See also {#load_referenced_resources} and {#with_objects_from_params}.
     def update
-      model.transaction do
-        if params.has_key? model.name.underscore
-          @resources.first.to_proxy(security_context, :update).
-            update_attributes!(params[model.name.underscore])
-        else
-          @resources.each_with_index do |resource, index|
-            resource.to_proxy(security_context, :update).
-            update_attributes!(params[model.name.underscore.pluralize][index])
-          end
-        end
+      with_objects_from_params do |attributes, index|
+        @resources[index].update_attributes! attributes
       end
 
-      render_modified_resources
+      render_resources
     end
 
+    # +DELETE /resources/1,2+
+    #
+    # This action destroys one or more records. It expects resource IDs to be passed
+    # comma-separated in <tt>params[:id]</tt>.
+    #
+    # See also {#load_referenced_resources}.
     def destroy
       model.transaction do
         @resources.each &:destroy
@@ -84,6 +116,8 @@ module Heimdallr
     end
 
     protected
+
+    # @group Configuration
 
     # Return the associated model class.
     # @return [Class] associated model
@@ -147,15 +181,35 @@ module Heimdallr
       @resources = scoped_model.find(params[:id].split(','))
     end
 
-    # Renders a modified collection in {#create}, {#update} and similar actions.
+    # Render a modified collection in {#create}, {#update} and similar actions.
     #
-    # By default, invokes a template for +index+.
-    def render_modified_resources
+    # By default, it invokes a template for +index+.
+    def render_resources
       render :action => :index
+    end
+
+    # Fetch one or several objects passed in +params+ and yield them to a block,
+    # wrapping everything in a transaction.
+    #
+    # @yield [attributes, index]
+    # @yieldparam [Hash] attributes
+    # @yieldparam [Integer] index
+    def with_objects_from_params
+      model.transaction do
+        if params.has_key? model.name.underscore
+          yield params[model.name.underscore], 0
+        else
+          params[model.name.underscore.pluralize].
+                each_with_index do |attributes, index|
+            yield attributes, index
+          end
+        end
+      end
     end
 
     extend ActiveSupport::Concern
 
+    # Class methods for {Heimdallr::Resource}. See also +ActiveSupport::Concern+.
     module ClassMethods
       # Returns the attached model class.
       # @return [Class]

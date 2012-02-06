@@ -80,6 +80,16 @@ secure.find 2
 
 The DSL is described in documentation for {Heimdallr::Model}.
 
+Note that Heimdallr is designed with three goals in mind, in the following order:
+
+ * Preventing malicious modifications
+ * Preventing information leaks
+ * Being convenient to use
+
+Due to the last one, not all methods will raise an exception on invalid access; some will silently drop the offending
+attribute or simply return `nil`. This is clearly described in the documentation, done intentionally and isn't
+going to change.
+
 REST interface
 --------------
 
@@ -92,12 +102,7 @@ The interface is described in documentation for {Heimdallr::Resource}.
 Compatibility
 -------------
 
-While Heimdallr can be used with plain ActiveModel objects, there is no standard interface for examining and
-interacting with relations of such objects, and thus no actions will be performed on returned collections. It is
-advised to use Heimdallr with ActiveRecord 3 objects, where an incredibly powerful ARel query construction interface is
-available.
-
-Ruby 1.8 and ActiveRecord versions prior to 3 are not supported.
+Ruby 1.8 and ActiveRecord versions prior to 3.0 are not supported.
 
 Licensing
 ---------
