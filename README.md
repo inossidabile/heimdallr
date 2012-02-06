@@ -78,7 +78,7 @@ secure.find 2
 # -- No, it is not.
 ```
 
-The DSL is described in documentation for [Heimdallr::Model](http://rubydoc.info/gems/heimdallr/0.0.1/Heimdallr/Model).
+The DSL is described in documentation for [Heimdallr::Model](http://rubydoc.info/gems/heimdallr/0.0.2/Heimdallr/Model).
 
 Note that Heimdallr is designed with three goals in mind, in the following order:
 
@@ -97,7 +97,7 @@ Heimdallr also favors REST pattern; while its use is not mandated, a Heimdallr::
 implements all standard REST actions with the extension of allowing to pass multiple models at once, and also enables
 one to introspect all writable fields with `new` and `edit` actions.
 
-The interface is described in documentation for [Heimdallr::Resource](http://rubydoc.info/gems/heimdallr/0.0.1/Heimdallr/Resource).
+The interface is described in documentation for [Heimdallr::Resource](http://rubydoc.info/gems/heimdallr/0.0.2/Heimdallr/Resource).
 
 Compatibility
 -------------
