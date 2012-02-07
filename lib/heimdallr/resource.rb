@@ -79,7 +79,7 @@ module Heimdallr
     # See also {#new}.
     def edit
       render :json => {
-        :fields => model.restrict(security_context).allowed_fields[:update]
+        :fields => model.restrictions(security_context).allowed_fields[:update]
       }
     end
 
@@ -232,7 +232,7 @@ module Heimdallr
       # For convenience, you can pass additional actions to register with default filters in
       # +options+. It is also possible to use +append_before_filter+.
       #
-      # @param [Class] model An ActiveModel or ActiveRecord model class.
+      # @param [Class] model an +ActiveRecord+-derived model class
       # @option options [Array<Symbol>] :index
       #   Additional actions to be covered by {Heimdallr::Resource#load_all_resources}.
       # @option options [Array<Symbol>] :member

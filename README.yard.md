@@ -80,15 +80,16 @@ secure.find 2
 
 The DSL is described in documentation for {Heimdallr::Model}.
 
-Note that Heimdallr is designed with three goals in mind, in the following order:
+Ideology
+--------
 
- * Preventing malicious modifications
- * Preventing information leaks
- * Being convenient to use
+Heimdallr aims to make security explicit, but nevertheless convenient. It does not allow one to call any
+implicit operations which may be used maliciously; instead, it forces you to explicitly call `#insecure`
+method which returns the underlying object. This single point of entry is easily recognizable with code.
 
-Due to the last one, not all methods will raise an exception on invalid access; some will silently drop the offending
-attribute or simply return `nil`. This is clearly described in the documentation, done intentionally and isn't
-going to change.
+Not all methods will raise an exception on invalid access; some will silently drop the offending
+attribute or return `nil`. This is clearly described in the documentation and done purposely to allow for
+writing uncrufted code in templates (particularly [JBuilder](http://github.com/rails/jbuilder) ones).
 
 REST interface
 --------------

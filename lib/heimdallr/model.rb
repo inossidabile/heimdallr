@@ -10,6 +10,9 @@ module Heimdallr
   #       end
   #     end
   #
+  # {Heimdallr::Model} should be included prior to any other modules, as it may omit
+  # some named scopes defined by those if it is not.
+  #
   # @todo Improve description
   module Model
     extend ActiveSupport::Concern
@@ -30,7 +33,7 @@ module Heimdallr
       #   @return [Proxy::Collection]
       def restrict(context=nil, &block)
         if block
-          @restrictions = Evaluator.new(self, &block)
+          @restrictions = Evaluator.new(self, block)
         else
           Proxy::Collection.new(context, restrictions(context).request_scope)
         end
@@ -42,13 +45,28 @@ module Heimdallr
       def restrictions(context)
         @restrictions.evaluate(context)
       end
+
+      # @api private
+      #
+      # An internal attribute to store the list of user-defined name scopes.
+      # It is required because ActiveRecord does not provide any introspection for
+      # named scopes.
+      attr_accessor :heimdallr_scopes
+
+      # An interceptor for named scopes which adds them to {#heimdallr_scopes} list.
+      def scope(name, *args)
+        self.heimdallr_scopes ||= []
+        self.heimdallr_scopes.push name
+
+        super
+      end
     end
 
     # Return a secure proxy object for this record.
     #
     # @return [Record::Proxy]
-    def restrict(context, action)
-      Record::Proxy.new(context, self)
+    def restrict(context)
+      Proxy::Record.new(context, self)
     end
 
     # @api private
@@ -57,9 +75,16 @@ module Heimdallr
     # the context in which this object is currently being saved.
     attr_accessor :heimdallr_validators
 
+    # @api private
+    #
+    # An internal method to run Heimdallr security validators, when applicable.
+    def heimdallr_validations
+      validates_with Heimdallr::Validator
+    end
+
     def self.included(klass)
-      klass.const_eval do
-        validates_with Heimdallr::Validator
+      klass.class_eval do
+        validate :heimdallr_validations
       end
     end
   end

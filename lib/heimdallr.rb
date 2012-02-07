@@ -1,15 +1,6 @@
 require "active_support"
 require "active_model"
 
-require "heimdallr/version"
-
-require "heimdallr/proxy/collection"
-require "heimdallr/proxy/record"
-require "heimdallr/validator"
-require "heimdallr/evaluator"
-require "heimdallr/model"
-require "heimdallr/resource"
-
 # See {file:README.yard}.
 module Heimdallr
   class << self
@@ -33,8 +24,9 @@ module Heimdallr
     #
     # @return [Boolean]
     attr_accessor :allow_insecure_associations
-    self.allow_insecure_associations = false
   end
+
+  self.allow_insecure_associations = false
 
   # {PermissionError} is raised when a security policy prevents
   # a called operation from being executed.
@@ -43,4 +35,14 @@ module Heimdallr
   # {InsecureOperationError} is raised when a potentially unsafe
   # operation is about to be executed.
   class InsecureOperationError < StandardError; end
+
+  # Heimdallr uses proxies to control access to restricted scopes and collections.
+  module Proxy; end
 end
+
+require "heimdallr/proxy/collection"
+require "heimdallr/proxy/record"
+require "heimdallr/validator"
+require "heimdallr/evaluator"
+require "heimdallr/model"
+require "heimdallr/resource"

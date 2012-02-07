@@ -6,11 +6,13 @@ module Heimdallr
   # is whitelisting safe actions, not blacklisting unsafe ones. This is by design
   # and is not going to change.
   #
+  # The field +#id+ is whitelisted by default.
+  #
   # The DSL consists of three functions: {#scope}, {#can} and {#cannot}.
   class Evaluator
     attr_reader :allowed_fields, :fixtures, :validators
 
-    # Create a new Evaluator for the ActiveModel-descending class +model_class+,
+    # Create a new Evaluator for the +ActiveRecord+-derived class +model_class+,
     # and use +block+ to infer restrictions for any security context passed.
     def initialize(model_class, block)
       @model_class, @block = model_class, block
@@ -72,15 +74,15 @@ module Heimdallr
     # @param [Symbol, Array<Symbol>] actions one or more action names
     # @param [Hash<Hash, Object>] fields field restrictions
     def can(actions, fields=@model_class.attribute_names)
-      Array(actions).each do |action|
+      Array(actions).map(&:to_sym).each do |action|
         case fields
         when Hash # a list of validations
-          @allowed_fields[action] += fields.keys
+          @allowed_fields[action] += fields.keys.map(&:to_sym)
           @validations[action]    += create_validators(fields)
           @fixtures[action].merge extract_fixtures(fields)
 
         else # an array or a field name
-          @allowed_fields[action] += Array(fields)
+          @allowed_fields[action] += Array(fields).map(&:to_sym)
         end
       end
     end
@@ -91,38 +93,48 @@ module Heimdallr
     # @param [Symbol, Array<Symbol>] actions one or more action names
     # @param [Array<Symbol>] fields field list
     def cannot(actions, fields)
-      Array(actions).each do |action|
-        @allowed_fields[action] -= fields
+      Array(actions).map(&:to_sym).each do |action|
+        @allowed_fields[action] -= fields.map(&:to_sym)
         @fixtures.delete_at *fields
       end
     end
 
     # @endgroup
 
-    # Request a scope.
+    # Request a scope. Returns +nil+ if it does not exist.
     #
     # @param scope name of the scope
     # @param basic_scope the scope to which scope +name+ will be applied. Defaults to +:fetch+.
     #
-    # @return ActiveRecord scope
-    def request_scope(name=:fetch, basic_scope=request_scope(:fetch))
-      if name == :fetch || !@scopes.has_key?(name)
-        fetch_scope = @model_class.instance_exec(&@scopes[:fetch])
+    # @return +ActiveRecord+ scope or +nil+
+    def request_scope(name=:fetch, basic_scope=nil)
+      if name == :fetch && basic_scope.nil?
+        @model_class.instance_exec(&@scopes[:fetch])
+      elsif @scopes.has_key?(name)
+        (basic_scope || request_scope(:fetch)).instance_exec(&@scopes[name])
       else
-        basic_scope.instance_exec(&@scopes[name])
+        nil
       end
     end
 
     # Compute the restrictions for a given +context+. Invokes a +block+ passed to the
     # +initialize+ once.
+    #
+    # @raise [RuntimeError] if the evaluated block did not define a set of valid restrictions
     def evaluate(context)
       if context != @last_context
         @scopes         = {}
         @allowed_fields = Hash.new { [] }
         @validators     = Hash.new { [] }
-        @fixtures       = Hash.new { [] }
+        @fixtures       = Hash.new { {} }
 
-        instance_exec context, &block
+        @allowed_fields[:view] += [ :id ]
+
+        instance_exec context, &@block
+
+        unless @scopes[:fetch]
+          raise RuntimeError, "A :fetch scope must be defined"
+        end
 
         [@scopes, @allowed_fields, @validators, @fixtures].
               map(&:freeze)
@@ -139,7 +151,7 @@ module Heimdallr
     #
     # @return [Array<ActiveModel::Validator>]
     def create_validators(fields)
-      validators = {}
+      validators = []
 
       fields.each do |attribute, validations|
         next unless validations.is_a? Hash
@@ -153,7 +165,7 @@ module Heimdallr
             raise ArgumentError, "Unknown validator: '#{key}'"
           end
 
-          validators[attribute] = validator.new(_parse_validates_options(options).merge(:attributes => [ attribute ]))
+          validators << validator.new(_parse_validates_options(options).merge(:attributes => [ attribute ]))
         end
       end
 
@@ -167,7 +179,7 @@ module Heimdallr
       fields.each do |attribute, options|
         next if options.is_a? Hash
 
-        fixtures[attribute] = options
+        fixtures[attribute.to_sym] = options
       end
 
       fixtures

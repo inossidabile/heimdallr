@@ -37,28 +37,34 @@ module Heimdallr
     # A proxy for +attributes+ method which removes all attributes
     # without +:view+ permission.
     def attributes
-      @restrictions.filter_attributes(:view, @record.attributes)
-    end
-
-    # A proxy for +update_attributes+ method which removes all attributes
-    # without +:update+ permission and invokes +#save+.
-    #
-    # @raise [Heimdallr::PermissionError]
-    def update_attributes(attributes, options={})
-      @record.with_transaction_returning_status do
-        @record.assign_attributes(attributes, options)
-        self.save
+      @record.attributes.tap do |attributes|
+        attributes.keys.each do |key|
+          unless @restrictions.allowed_fields[:view].include? key.to_sym
+            attributes[key] = nil
+          end
+        end
       end
     end
 
-    # A proxy for +update_attributes!+ method which removes all attributes
-    # without +:update+ permission and invokes +#save!+.
+    # A proxy for +update_attributes+ method.
+    # See also {#save}.
     #
     # @raise [Heimdallr::PermissionError]
     def update_attributes(attributes, options={})
       @record.with_transaction_returning_status do
         @record.assign_attributes(attributes, options)
-        self.save!
+        save
+      end
+    end
+
+    # A proxy for +update_attributes!+ method.
+    # See also {#save!}.
+    #
+    # @raise [Heimdallr::PermissionError]
+    def update_attributes!(attributes, options={})
+      @record.with_transaction_returning_status do
+        @record.assign_attributes(attributes, options)
+        save!
       end
     end
 
@@ -93,7 +99,11 @@ module Heimdallr
       class_eval(<<-EOM, __FILE__, __LINE__)
       def #{method}
         scope = @restrictions.request_scope(:delete)
-        if scope.where({ @record.primary_key => @record.to_key }).count != 0
+        unless scope
+          raise RuntimeError, "The :delete scope is not defined"
+        end
+
+        if scope.where({ @record.class.primary_key => @record.to_key }).count != 0
           @record.#{method}
         end
       end
@@ -131,7 +141,7 @@ module Heimdallr
         suffix = nil
       end
 
-      if defined?(ActiveRecord) && @record.is_a?(ActiveRecord::Base) &&
+      if defined?(ActiveRecord) && @record.is_a?(ActiveRecord::Reflection) &&
           association = @record.class.reflect_on_association(method)
         referenced = @record.send(method, *args)
 
@@ -141,18 +151,20 @@ module Heimdallr
           referenced
         else
           raise Heimdallr::InsecureOperationError,
-              "Attempt to fetch insecure association #{method}. Try #insecure."
+              "Attempt to fetch insecure association #{method}. Try #insecure"
         end
       elsif @record.respond_to? method
-        if [nil, '?'].include?(suffix) &&
-             @restrictions.allowed_fields[:view].include?(normalized_method)
-          # Reading an attribute
-          @record.send method, *args, &block
+        if [nil, '?'].include?(suffix)
+          if @restrictions.allowed_fields[:view].include?(normalized_method)
+            @record.send method, *args, &block
+          else
+            nil
+          end
         elsif suffix == '='
           @record.send method, *args
         else
           raise Heimdallr::PermissionError,
-              "Non-whitelisted method #{method} is called for #{@record.inspect} on #{@action}."
+              "Non-whitelisted method #{method} is called for #{@record.inspect} "
         end
       else
         super
@@ -170,11 +182,11 @@ module Heimdallr
     #
     # @return [String]
     def inspect
-      "#<Heimdallr::Proxy(#{@action}): #{@record.inspect}>"
+      "#<Heimdallr::Proxy::Record: #{@record.inspect}>"
     end
 
     # Return the associated security metadata. The returned hash will contain keys
-    # +:context+ and +:object+, corresponding to the parameters in
+    # +:context+ and +:record+, corresponding to the parameters in
     # {#initialize}.
     #
     # Such a name was deliberately selected for this method in order to reduce namespace
@@ -184,7 +196,7 @@ module Heimdallr
     def reflect_on_security
       {
         context: @context,
-        object:  @record
+        record:  @record
       }
     end
 
@@ -203,8 +215,9 @@ module Heimdallr
         action = :update
       end
 
-      fixtures   = @restrictions.fixtures[action]
-      validators = @restrictions.validators[action]
+      allowed_fields = @restrictions.allowed_fields[action]
+      fixtures       = @restrictions.fixtures[action]
+      validators     = @restrictions.validators[action]
 
       @record.changed.each do |attribute|
         value = @record.send attribute
@@ -214,6 +227,11 @@ module Heimdallr
             raise Heimdallr::PermissionError,
                 "Attribute #{attribute} value (#{value}) is not equal to a fixture (#{fixtures[attribute]})"
           end
+        end
+
+        unless allowed_fields.include? attribute
+          raise Heimdallr::PermissionError,
+              "Attribute #{attribute} is not allowed to change"
         end
       end
 
