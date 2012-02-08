@@ -136,6 +136,10 @@ module Heimdallr
           raise RuntimeError, "A :fetch scope must be defined"
         end
 
+        @allowed_fields.each do |action, fields|
+          fields.uniq!
+        end
+
         [@scopes, @allowed_fields, @validators, @fixtures].
               map(&:freeze)
 

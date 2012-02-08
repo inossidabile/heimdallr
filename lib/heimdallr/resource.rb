@@ -168,7 +168,7 @@ module Heimdallr
     #
     # Is automatically applied to {#index}.
     def load_all_resources
-      @resources = restricted_model.all
+      @resources = restricted_model
     end
 
     # Loads one resource from the current scope, referenced by <code>params[:id]</code>,
