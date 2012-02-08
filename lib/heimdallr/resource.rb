@@ -65,9 +65,8 @@ module Heimdallr
     #
     # See also {#load_referenced_resources} and {#with_objects_from_params}.
     def create
-      with_objects_from_params do |attributes, index|
-        scoped_model.restrict(security_context).
-            create!(attributes)
+      @resources = with_objects_from_params do |attributes, index|
+        restricted_model.create!(attributes)
       end
 
       render_resources
@@ -158,11 +157,18 @@ module Heimdallr
       self.model.scoped
     end
 
+    # Return the scoped and restricted model. By default this method
+    # restricts the result of {#scoped_model} with +security_context+,
+    # which is expected to be defined on this class or its ancestors.
+    def restricted_model
+      scoped_model.restrict(security_context)
+    end
+
     # Loads all resources in the current scope to +@resources+.
     #
     # Is automatically applied to {#index}.
     def load_all_resources
-      @resources = scoped_model
+      @resources = restricted_model.all
     end
 
     # Loads one resource from the current scope, referenced by <code>params[:id]</code>,
@@ -170,7 +176,7 @@ module Heimdallr
     #
     # Is automatically applied to {#show}.
     def load_one_resource
-      @resource  = scoped_model.find(params[:id])
+      @resource  = restricted_model.find(params[:id])
     end
 
     # Loads several resources from the current scope, referenced by <code>params[:id]</code>
@@ -178,7 +184,7 @@ module Heimdallr
     #
     # Is automatically applied to {#update} and {#destroy}.
     def load_referenced_resources
-      @resources = scoped_model.find(params[:id].split(','))
+      @resources = restricted_model.find(params[:id].split(','))
     end
 
     # Render a modified collection in {#create}, {#update} and similar actions.
@@ -194,14 +200,16 @@ module Heimdallr
     # @yield [attributes, index]
     # @yieldparam [Hash] attributes
     # @yieldparam [Integer] index
+    #
+    # @return [Array] an array populated with yielding return values
     def with_objects_from_params
       model.transaction do
         if params.has_key? model.name.underscore
-          yield params[model.name.underscore], 0
+          [ yield(params[model.name.underscore], 0) ]
         else
           params[model.name.underscore.pluralize].
-                each_with_index do |attributes, index|
-            yield attributes, index
+                each_with_index.map do |(attributes, index)|
+            yield(attributes, index)
           end
         end
       end
