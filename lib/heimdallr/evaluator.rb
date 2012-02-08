@@ -38,7 +38,7 @@ module Heimdallr
     #   This form accepts an implicit lambda.
     #
     #   @example
-    #       scope :fetch do
+    #       scope :fetch do |user|
     #         if user.manager?
     #           scoped
     #         else
