@@ -71,6 +71,19 @@ module Heimdallr
     end
 
     # @private
+    # @macro [attach] delegate_as_records
+    #   A proxy for +$1+ method which returns an array of restricted records.
+    def self.delegate_as_records(name)
+      class_eval(<<-EOM, __FILE__, __LINE__)
+      def #{name}(*args)
+        @scope.#{name}(*args).map do |element|
+          element.restrict(@context)
+        end
+      end
+      EOM
+    end
+
+    # @private
     # @macro [attach] delegate_as_value
     #   A proxy for +$1+ method which returns a raw value.
     def self.delegate_as_value(name)
@@ -87,7 +100,6 @@ module Heimdallr
     delegate_as_constructor :create!, :update_attributes!
 
     delegate_as_scope :scoped
-    delegate_as_scope :all
     delegate_as_scope :uniq
     delegate_as_scope :where
     delegate_as_scope :joins
@@ -123,10 +135,14 @@ module Heimdallr
     delegate_as_destroyer :destroy
     delegate_as_destroyer :destroy_all
 
-    delegate_as_record :first
-    delegate_as_record :first!
-    delegate_as_record :last
-    delegate_as_record :last!
+    delegate_as_record  :first
+    delegate_as_record  :first!
+    delegate_as_record  :last
+    delegate_as_record  :last!
+
+    delegate_as_records :all
+    delegate_as_records :to_a
+    delegate_as_records :to_ary
 
     # A proxy for +find+ which restricts the returned record or records.
     #
@@ -142,14 +158,6 @@ module Heimdallr
         result.restrict(@context)
       end
     end
-
-    # A proxy for +to_a+ which restricts the returned records.
-    #
-    # @return [Array<Proxy::Record>]
-    def to_a
-      @scope.to_a.map { |record| record.restrict(@context) }
-    end
-    alias :to_ary :to_a
 
     # A proxy for +each+ which restricts the yielded records.
     #
