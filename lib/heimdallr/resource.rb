@@ -35,14 +35,14 @@ module Heimdallr
     #
     # This action does nothing by itself, but it has a +load_all_resources+ filter attached.
     def index
-      render_resources
+      render_data
     end
 
     # +GET /resource/1+
     #
     # This action does nothing by itself, but it has a +load_one_resource+ filter attached.
     def show
-      render_resources
+      render_data
     end
 
     # +GET /resources/new+
@@ -218,16 +218,20 @@ module Heimdallr
     def with_objects_from_params(options={})
       model.transaction do
         if @multiple_resources
-          result = params[model.name.underscore.pluralize].
-                each_with_index.map do |(attributes, index)|
-            yield(attributes, @resources[index])
+          begin
+            result = params[model.name.underscore.pluralize].
+                  each_with_index.map do |(attributes, index)|
+              yield(attributes, @resources[index])
+            end
+          ensure
+            @resources = result if options[:replace]
           end
-
-          @resources = result if options[:replace]
         else
-          result = yield(params[model.name.underscore], @resource)
-
-          @resource  = result if options[:replace]
+          begin
+            result = yield(params[model.name.underscore], @resource)
+          ensure
+            @resource  = result if options[:replace]
+          end
         end
       end
     end
