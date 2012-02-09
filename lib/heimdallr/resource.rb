@@ -194,15 +194,10 @@ module Heimdallr
 
     # Render a modified collection in {#create}, {#update} and similar actions.
     def render_resources
-      sub_render = lambda do |record|
-        render_to_string :partial => 'resource', :locals => { model.name.underscore.to_sym => record }
-      end
-
       if @multiple_resources
-        render :json => { model.name.pluralize.underscore =>
-                          @resources.map { |resource| sub_render.(resource) } }
+        render :action => :index
       else
-        render :json => sub_render.(@resource)
+        render :action => :show
       end
     end
 
