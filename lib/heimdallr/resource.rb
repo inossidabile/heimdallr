@@ -71,9 +71,7 @@ module Heimdallr
         restricted_model.create!(attributes)
       end
 
-      render_data
-    rescue ActiveRecord::RecordInvalid
-      render_errors
+      render_data verify: true
     end
 
     # +GET /resources/1/edit+
@@ -101,9 +99,7 @@ module Heimdallr
         object.update_attributes! attributes
       end
 
-      render_data
-    rescue ActiveRecord::RecordInvalid
-      render_errors
+      render_data verify: true
     end
 
     # +DELETE /resources/1,2+
@@ -193,19 +189,19 @@ module Heimdallr
     end
 
     # Render a modified collection in {#create}, {#update} and similar actions.
-    def render_data
+    def render_data(options={})
       if @multiple_resources
-        render :action => :index
+        if options[:verify] && @resources.any?(&:invalid?)
+          render :json => { errors: @resources.map(&:errors) }
+        else
+          render :action => :index
+        end
       else
-        render :action => :show
-      end
-    end
-
-    def render_errors
-      if @multiple_resources
-        render :json => { errors: @resources.map(&:errors) }
-      else
-        render :json => { errors: @resource.errors }
+        if options[:verify] && @resource.invalid?
+          render :json => { errors: @resource.errors }
+        else
+          render :action => :show
+        end
       end
     end
 
