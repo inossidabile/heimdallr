@@ -31,8 +31,9 @@ module Heimdallr
     def self.delegate_as_constructor(name, method)
       class_eval(<<-EOM, __FILE__, __LINE__)
       def #{name}(attributes={})
-        @restrictions.new.restrict(@context).
-            #{method}(attributes.merge(@restrictions.fixtures[:create]))
+        record = @restrictions.request_scope(:fetch).new.restrict(@context)
+        record.#{method}(attributes.merge(@restrictions.fixtures[:create]))
+        record
       end
       EOM
     end

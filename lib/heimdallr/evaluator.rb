@@ -19,7 +19,7 @@ module Heimdallr
 
       @scopes         = {}
       @allowed_fields = {}
-      @validations    = {}
+      @validators     = {}
       @fixtures       = {}
     end
 
@@ -78,7 +78,7 @@ module Heimdallr
         case fields
         when Hash # a list of validations
           @allowed_fields[action] += fields.keys.map(&:to_sym)
-          @validations[action]    += create_validators(fields)
+          @validators[action]     += create_validators(fields)
           @fixtures[action].merge extract_fixtures(fields)
 
         else # an array or a field name

@@ -203,16 +203,20 @@ module Heimdallr
     #
     # @return [Array] an array populated with yielding return values
     def with_objects_from_params
+      list = []
+
       model.transaction do
         if params.has_key? model.name.underscore
-          [ yield(params[model.name.underscore], 0) ]
+          list = [ yield(params[model.name.underscore], 0) ]
         else
-          params[model.name.underscore.pluralize].
+          list = params[model.name.underscore.pluralize].
                 each_with_index.map do |(attributes, index)|
             yield(attributes, index)
           end
         end
       end
+
+      list
     end
 
     extend ActiveSupport::Concern
