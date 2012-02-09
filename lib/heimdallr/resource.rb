@@ -35,12 +35,14 @@ module Heimdallr
     #
     # This action does nothing by itself, but it has a +load_all_resources+ filter attached.
     def index
+      render_resources
     end
 
     # +GET /resource/1+
     #
     # This action does nothing by itself, but it has a +load_one_resource+ filter attached.
     def show
+      render_resources
     end
 
     # +GET /resources/new+
@@ -61,15 +63,17 @@ module Heimdallr
     # This action creates one or more records from the passed parameters.
     # It can accept both arrays of attribute hashes and single attribute hashes.
     #
-    # After the creation, it calls {#render_resources}.
+    # After the creation, it calls {#render_data}.
     #
     # See also {#load_referenced_resources} and {#with_objects_from_params}.
     def create
-      @resources = with_objects_from_params do |attributes, index|
+      with_objects_from_params(replace: true) do |attributes|
         restricted_model.create!(attributes)
       end
 
-      render_resources
+      render_data
+    rescue ActiveRecord::RecordInvalid
+      render_errors
     end
 
     # +GET /resources/1/edit+
@@ -89,15 +93,17 @@ module Heimdallr
     # and expects them to be in the order corresponding to the order of actual
     # attribute hashes.
     #
-    # After the updating, it calls {#render_resources}.
+    # After the updating, it calls {#render_data}.
     #
     # See also {#load_referenced_resources} and {#with_objects_from_params}.
     def update
-      with_objects_from_params do |attributes, index|
-        @resources[index].update_attributes! attributes
+      with_objects_from_params do |attributes, object|
+        object.update_attributes! attributes
       end
 
-      render_resources
+      render_data
+    rescue ActiveRecord::RecordInvalid
+      render_errors
     end
 
     # +DELETE /resources/1,2+
@@ -107,8 +113,8 @@ module Heimdallr
     #
     # See also {#load_referenced_resources}.
     def destroy
-      model.transaction do
-        @resources.each &:destroy
+      with_objects_from_params do |attributes, object|
+        object.destroy
       end
 
       render :json => {}, :status => :ok
@@ -168,30 +174,44 @@ module Heimdallr
     #
     # Is automatically applied to {#index}.
     def load_all_resources
+      @multiple_resources = true
       @resources = restricted_model
-    end
-
-    # Loads one resource from the current scope, referenced by <code>params[:id]</code>,
-    # to +@resource+.
-    #
-    # Is automatically applied to {#show}.
-    def load_one_resource
-      @resource  = restricted_model.find(params[:id])
     end
 
     # Loads several resources from the current scope, referenced by <code>params[:id]</code>
     # with a comma-separated string like "1,2,3", to +@resources+.
     #
-    # Is automatically applied to {#update} and {#destroy}.
+    # Is automatically applied to {#show}, {#update} and {#destroy}.
     def load_referenced_resources
-      @resources = restricted_model.find(params[:id].split(','))
+      if params[:id][0] == '*'
+        @multiple_resources = true
+        @resources = restricted_model.find(params[:id][1..-1].split(','))
+      else
+        @multiple_resources = false
+        @resource  = restricted_model.find(params[:id])
+      end
     end
 
     # Render a modified collection in {#create}, {#update} and similar actions.
-    #
-    # By default, it invokes a template for +index+.
     def render_resources
-      render :action => :index
+      sub_render = lambda do |record|
+        render_to_string :partial => 'resource', :locals => { model.name.underscore.to_sym => record }
+      end
+
+      if @multiple_resources
+        render :json => { model.name.pluralize.underscore =>
+                          @resources.map { |resource| sub_render.(resource) } }
+      else
+        render :json => sub_render.(@resource)
+      end
+    end
+
+    def render_errors
+      if @multiple_resources
+        render :json => { errors: @resources.map(&:errors) }
+      else
+        render :json => { errors: @resource.errors }
+      end
     end
 
     # Fetch one or several objects passed in +params+ and yield them to a block,
@@ -200,23 +220,21 @@ module Heimdallr
     # @yield [attributes, index]
     # @yieldparam [Hash] attributes
     # @yieldparam [Integer] index
-    #
-    # @return [Array] an array populated with yielding return values
-    def with_objects_from_params
-      list = []
-
+    def with_objects_from_params(options={})
       model.transaction do
-        if params.has_key? model.name.underscore
-          list = [ yield(params[model.name.underscore], 0) ]
-        else
-          list = params[model.name.underscore.pluralize].
+        if @multiple_resources
+          result = params[model.name.underscore.pluralize].
                 each_with_index.map do |(attributes, index)|
-            yield(attributes, index)
+            yield(attributes, @resources[index])
           end
+
+          @resources = result if options[:replace]
+        else
+          result = yield(params[model.name.underscore], @resource)
+
+          @resource  = result if options[:replace]
         end
       end
-
-      list
     end
 
     extend ActiveSupport::Concern
@@ -254,9 +272,8 @@ module Heimdallr
       def resource_for(model, options={})
         @model = model.to_s.camelize.constantize
 
-        before_filter :load_all_resources,          only: [ :index ].concat(options[:all] || [])
-        before_filter :load_one_resource,           only: [ :show  ].concat(options[:member] || [])
-        before_filter :load_referenced_resources,   only: [ :update, :destroy ].concat(options[:collection] || [])
+        before_filter :load_all_resources,        only: [ :index ].concat(options[:all] || [])
+        before_filter :load_referenced_resources, only: [ :show, :update, :destroy ].concat(options[:referenced] || [])
       end
     end
   end
