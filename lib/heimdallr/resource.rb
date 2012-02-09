@@ -68,7 +68,7 @@ module Heimdallr
     # See also {#load_referenced_resources} and {#with_objects_from_params}.
     def create
       with_objects_from_params(replace: true) do |attributes|
-        restricted_model.create!(attributes)
+        restricted_model.create(attributes)
       end
 
       render_data verify: true
@@ -96,7 +96,7 @@ module Heimdallr
     # See also {#load_referenced_resources} and {#with_objects_from_params}.
     def update
       with_objects_from_params do |attributes, object|
-        object.update_attributes! attributes
+        object.update_attributes attributes
       end
 
       render_data verify: true
