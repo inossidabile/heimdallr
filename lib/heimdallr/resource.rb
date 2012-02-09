@@ -193,7 +193,7 @@ module Heimdallr
     end
 
     # Render a modified collection in {#create}, {#update} and similar actions.
-    def render_resources
+    def render_data
       if @multiple_resources
         render :action => :index
       else
