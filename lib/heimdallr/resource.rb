@@ -192,13 +192,13 @@ module Heimdallr
     def render_data(options={})
       if @multiple_resources
         if options[:verify] && @resources.any?(&:invalid?)
-          render :json => { errors: @resources.map(&:errors) }
+          render :json => { errors: @resources.map(&:errors) }, :status => :unprocessable_entity
         else
           render :action => :index
         end
       else
         if options[:verify] && @resource.invalid?
-          render :json => { errors: @resource.errors }
+          render :json => { errors: @resource.errors }, :status => :unprocessable_entity
         else
           render :action => :show
         end
