@@ -215,9 +215,15 @@ module Heimdallr
       model.transaction do
         if @multiple_resources
           begin
-            result = params[model.name.underscore.pluralize].
-                  each_with_index.map do |(attributes, index)|
-              yield(@resources[index], attributes)
+            name = model.name.underscore.pluralize
+            if params[name].is_a? Hash
+              enumerator = params[name].keys.each
+            else
+              enumerator = params[name].each_index
+            end
+
+            result = enumerator.map do |index|
+              yield(@resources[index.to_i], params[name][index])
             end
           ensure
             @resources = result if options[:replace]
