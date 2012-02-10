@@ -198,7 +198,7 @@ module Heimdallr
         end
       else
         if options[:verify] && @resource.invalid?
-          render :json => { errors: @resource.errors }, :status => :unprocessable_entity
+          render :json => @resource.errors, :status => :unprocessable_entity
         else
           render :action => :show
         end
