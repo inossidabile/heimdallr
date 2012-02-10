@@ -67,7 +67,7 @@ module Heimdallr
     #
     # See also {#load_referenced_resources} and {#with_objects_from_params}.
     def create
-      with_objects_from_params(replace: true) do |attributes|
+      with_objects_from_params(replace: true) do |object, attributes|
         restricted_model.create(attributes)
       end
 
@@ -95,7 +95,7 @@ module Heimdallr
     #
     # See also {#load_referenced_resources} and {#with_objects_from_params}.
     def update
-      with_objects_from_params do |attributes, object|
+      with_objects_from_params do |object, attributes|
         object.update_attributes attributes
       end
 
@@ -109,7 +109,7 @@ module Heimdallr
     #
     # See also {#load_referenced_resources}.
     def destroy
-      with_objects_from_params do |attributes, object|
+      with_objects_from_params do |object, attributes|
         object.destroy
       end
 
@@ -217,14 +217,14 @@ module Heimdallr
           begin
             result = params[model.name.underscore.pluralize].
                   each_with_index.map do |(attributes, index)|
-              yield(attributes, @resources[index])
+              yield(@resources[index], attributes)
             end
           ensure
             @resources = result if options[:replace]
           end
         else
           begin
-            result = yield(params[model.name.underscore], @resource)
+            result = yield(@resource, params[model.name.underscore])
           ensure
             @resource  = result if options[:replace]
           end
