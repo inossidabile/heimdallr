@@ -110,6 +110,18 @@ module Heimdallr
       EOM
     end
 
+    # @method valid?
+    # @macro delegate
+    delegate :valid?, :to => :@record
+
+    # @method invalid?
+    # @macro delegate
+    delegate :invalid?, :to => :@record
+
+    # @method errors
+    # @macro delegate
+    delegate :errors, :to => :@record
+
     # Records cannot be restricted twice.
     #
     # @raise [RuntimeError]

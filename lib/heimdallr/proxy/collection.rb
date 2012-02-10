@@ -178,7 +178,7 @@ module Heimdallr
         end
       elsif method =~ /^find_by/
         @scope.send(method, *args).restrict(@context)
-      elsif @scope.heimdallr_scopes.include?(method)
+      elsif @scope.heimdallr_scopes && @scope.heimdallr_scopes.include?(method)
         Proxy::Collection.new(@context, @scope.send(method, *args))
       elsif @scope.respond_to? method
         raise InsecureOperationError,
