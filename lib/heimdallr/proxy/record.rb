@@ -122,6 +122,12 @@ module Heimdallr
     # @macro delegate
     delegate :errors, :to => :@record
 
+    # Class name of the underlying model.
+    # @return [String]
+    def class_name
+      @record.class.name
+    end
+
     # Records cannot be restricted twice.
     #
     # @raise [RuntimeError]
