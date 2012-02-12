@@ -79,7 +79,10 @@ module Heimdallr
         when Hash # a list of validations
           @allowed_fields[action] += fields.keys.map(&:to_sym)
           @validators[action]     += create_validators(fields)
-          @fixtures[action].merge extract_fixtures(fields)
+
+          fixtures = extract_fixtures(fields)
+          @fixtures[action] = @fixtures[action].merge fixtures
+          @allowed_fields[action] -= fixtures.keys
 
         else # an array or a field name
           @allowed_fields[action] += Array(fields).map(&:to_sym)

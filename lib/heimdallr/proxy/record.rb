@@ -239,17 +239,15 @@ module Heimdallr
       fixtures       = @restrictions.fixtures[action]
       validators     = @restrictions.validators[action]
 
-      @record.changed.each do |attribute|
+      @record.changed.map(&:to_sym).each do |attribute|
         value = @record.send attribute
 
-        if fixtures.has_key? attribute.to_sym
+        if fixtures.has_key? attribute
           if fixtures[attribute] != value
             raise Heimdallr::PermissionError,
                 "Attribute #{attribute} value (#{value}) is not equal to a fixture (#{fixtures[attribute]})"
           end
-        end
-
-        unless allowed_fields.include? attribute.to_sym
+        elsif !allowed_fields.include? attribute
           raise Heimdallr::PermissionError,
               "Attribute #{attribute} is not allowed to change"
         end
