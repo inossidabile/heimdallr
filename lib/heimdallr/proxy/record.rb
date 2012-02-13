@@ -178,6 +178,8 @@ module Heimdallr
           if @restrictions.allowed_fields[:view].include?(normalized_method)
             @record.send method, *args, &block
           else
+            Rails.logger.warn "Heimdallr: unallowed attribute fetch #{method} on #{@record.class}." if Rails.env.development?
+
             nil
           end
         elsif suffix == '='
