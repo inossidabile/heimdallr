@@ -209,7 +209,7 @@ module Heimdallr
 
     # Return the associated security metadata. The returned hash will contain keys
     # +:context+ and +:record+, corresponding to the parameters in
-    # {#initialize}.
+    # {#initialize}, and +:model+, representing the model class.
     #
     # Such a name was deliberately selected for this method in order to reduce namespace
     # pollution.
@@ -217,6 +217,7 @@ module Heimdallr
     # @return [Hash]
     def reflect_on_security
       {
+        model:   @record.class,
         context: @context,
         record:  @record
       }
