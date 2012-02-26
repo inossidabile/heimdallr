@@ -122,6 +122,10 @@ module Heimdallr
     # @macro delegate
     delegate :errors, :to => :@record
 
+    # @method assign_attributes
+    # @macro delegate
+    delegate :assign_attributes, :to => :@record
+
     # Class name of the underlying model.
     # @return [String]
     def class_name
