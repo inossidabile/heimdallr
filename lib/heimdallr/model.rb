@@ -31,11 +31,11 @@ module Heimdallr
       #   @param [Object] context security context
       #   @param [Symbol] action  kind of actions which will be performed
       #   @return [Proxy::Collection]
-      def restrict(context=nil, &block)
+      def restrict(context=nil, options={}, &block)
         if block
           @restrictions = Evaluator.new(self, block)
         else
-          Proxy::Collection.new(context, restrictions(context).request_scope)
+          Proxy::Collection.new(context, restrictions(context).request_scope, options)
         end
       end
 
@@ -65,8 +65,8 @@ module Heimdallr
     # Return a secure proxy object for this record.
     #
     # @return [Record::Proxy]
-    def restrict(context)
-      Proxy::Record.new(context, self)
+    def restrict(context, options={})
+      Proxy::Record.new(context, self, options)
     end
 
     # @api private

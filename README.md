@@ -52,12 +52,17 @@ secure = Article.restrict(johndoe)
 # Use any ARel methods:
 secure.pluck(:content)
 # => ["Nothing happens", "Hello World"]
-secure.find(1).secrecy_level
-# => nil
 
 # Everything should be permitted explicitly:
 secure.first.delete
 # ! Heimdallr::PermissionError is raised
+secure.find(1).secrecy_level
+# ! Heimdallr::PermissionError is raised
+
+# There is a helper for views to be easily written:
+view_passed = secure.first.implicit
+view_passed.secrecy_level
+# => nil
 
 # If only a single value is possible, it is inferred automatically:
 secure.create! content: "My second article"

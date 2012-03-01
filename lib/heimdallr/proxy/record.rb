@@ -5,12 +5,18 @@ module Heimdallr
   #
   # The #touch method call isn't considered a security threat and as such, it is
   # forwarded to the underlying object directly.
+  #
+  # Record proxies can be of two types, implicit and explicit. Implicit proxies
+  # return +nil+ on access to methods forbidden by the current security context;
+  # explicit proxies raise an {Heimdallr::PermissionError} instead.
   class Proxy::Record
     # Create a record proxy.
-    # @param context security context
-    # @param object  proxified record
-    def initialize(context, record)
-      @context, @record = context, record
+    #
+    # @param context  security context
+    # @param object   proxified record
+    # @option options [Boolean] implicit proxy type
+    def initialize(context, record, options={})
+      @context, @record, @options = context, record, options
 
       @restrictions = @record.class.restrictions(context)
     end
@@ -170,7 +176,7 @@ module Heimdallr
         if referenced.nil?
           nil
         elsif referenced.respond_to? :restrict
-          referenced.restrict(@context)
+          referenced.restrict(@context, @options)
         elsif Heimdallr.allow_insecure_associations
           referenced
         else
@@ -181,10 +187,10 @@ module Heimdallr
         if [nil, '?'].include?(suffix)
           if @restrictions.allowed_fields[:view].include?(normalized_method)
             @record.send method, *args, &block
-          else
-            Rails.logger.warn "Heimdallr: unallowed attribute fetch #{method} on #{@record.class}." if Rails.env.development?
-
+          elsif @options[:implicit]
             nil
+          else
+            raise Heimdallr::PermissionError, "Attempt to fetch non-whitelisted attribute #{method}"
           end
         elsif suffix == '='
           @record.send method, *args
@@ -204,6 +210,20 @@ module Heimdallr
       @record
     end
 
+    # Return an implicit variant of this proxy.
+    #
+    # @return [Heimdallr::Proxy::Record]
+    def implicit
+      Proxy::Record.new(@context, @record, @options.merge(implicit: true))
+    end
+
+    # Return an explicit variant of this proxy.
+    #
+    # @return [Heimdallr::Proxy::Record]
+    def explicit
+      Proxy::Record.new(@context, @record, @options.merge(implicit: false))
+    end
+
     # Describes the proxy and proxified object.
     #
     # @return [String]
@@ -212,7 +232,7 @@ module Heimdallr
     end
 
     # Return the associated security metadata. The returned hash will contain keys
-    # +:context+ and +:record+, corresponding to the parameters in
+    # +:context+, +:record+, +:options+, corresponding to the parameters in
     # {#initialize}, and +:model+, representing the model class.
     #
     # Such a name was deliberately selected for this method in order to reduce namespace
@@ -223,7 +243,8 @@ module Heimdallr
       {
         model:   @record.class,
         context: @context,
-        record:  @record
+        record:  @record,
+        options: @options
       }
     end
 

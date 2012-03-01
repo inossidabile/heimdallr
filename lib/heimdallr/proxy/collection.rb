@@ -2,6 +2,9 @@ module Heimdallr
   # A security-aware proxy for +ActiveRecord+ scopes. This class validates all the
   # method calls and either forwards them to the encapsulated scope or raises
   # an exception.
+  #
+  # There are two kinds of collection proxies, explicit and implicit, which instantiate
+  # the corresponding types of record proxies. See also {Proxy::Record}.
   class Proxy::Collection
     include Enumerable
 
@@ -9,10 +12,11 @@ module Heimdallr
     #
     # The +scope+ is expected to be already restricted with +:fetch+ scope.
     #
-    # @param context security context
-    # @param scope proxified scope
-    def initialize(context, scope)
-      @context, @scope = context, scope
+    # @param context  security context
+    # @param scope    proxified scope
+    # @option options [Boolean] implicit proxy type
+    def initialize(context, scope, options={})
+      @context, @scope, @options = context, scope, options
 
       @restrictions = @scope.restrictions(context)
     end
@@ -20,7 +24,7 @@ module Heimdallr
     # Collections cannot be restricted twice.
     #
     # @raise [RuntimeError]
-    def restrict(context)
+    def restrict(*args)
       raise RuntimeError, "Collections cannot be restricted twice"
     end
 
@@ -31,7 +35,7 @@ module Heimdallr
     def self.delegate_as_constructor(name, method)
       class_eval(<<-EOM, __FILE__, __LINE__)
       def #{name}(attributes={})
-        record = @restrictions.request_scope(:fetch).new.restrict(@context)
+        record = @restrictions.request_scope(:fetch).new.restrict(@context, @options)
         record.#{method}(attributes.merge(@restrictions.fixtures[:create]))
         record
       end
@@ -44,7 +48,7 @@ module Heimdallr
     def self.delegate_as_scope(name)
       class_eval(<<-EOM, __FILE__, __LINE__)
       def #{name}(*args)
-        Proxy::Collection.new(@context, @scope.#{name}(*args))
+        Proxy::Collection.new(@context, @scope.#{name}(*args), @options)
       end
       EOM
     end
@@ -66,7 +70,7 @@ module Heimdallr
     def self.delegate_as_record(name)
       class_eval(<<-EOM, __FILE__, __LINE__)
       def #{name}(*args)
-        @scope.#{name}(*args).restrict(@context)
+        @scope.#{name}(*args).restrict(@context, @options)
       end
       EOM
     end
@@ -78,7 +82,7 @@ module Heimdallr
       class_eval(<<-EOM, __FILE__, __LINE__)
       def #{name}(*args)
         @scope.#{name}(*args).map do |element|
-          element.restrict(@context)
+          element.restrict(@context, @options)
         end
       end
       EOM
@@ -153,10 +157,10 @@ module Heimdallr
 
       if result.is_a? Enumerable
         result.map do |element|
-          element.restrict(@context)
+          element.restrict(@context, @options)
         end
       else
-        result.restrict(@context)
+        result.restrict(@context, @options)
       end
     end
 
@@ -166,7 +170,7 @@ module Heimdallr
     # @yieldparam [Proxy::Record] record
     def each
       @scope.each do |record|
-        yield record.restrict(@context)
+        yield record.restrict(@context, @options)
       end
     end
 
@@ -174,12 +178,12 @@ module Heimdallr
     def method_missing(method, *args)
       if method =~ /^find_all_by/
         @scope.send(method, *args).map do |element|
-          element.restrict(@context)
+          element.restrict(@context, @options)
         end
       elsif method =~ /^find_by/
-        @scope.send(method, *args).restrict(@context)
+        @scope.send(method, *args).restrict(@context, @options)
       elsif @scope.heimdallr_scopes && @scope.heimdallr_scopes.include?(method)
-        Proxy::Collection.new(@context, @scope.send(method, *args))
+        Proxy::Collection.new(@context, @scope.send(method, *args), @options)
       elsif @scope.respond_to? method
         raise InsecureOperationError,
             "Potentially insecure method #{method} was called"
@@ -203,7 +207,7 @@ module Heimdallr
     end
 
     # Return the associated security metadata. The returned hash will contain keys
-    # +:context+ and +:scope+, corresponding to the parameters in
+    # +:context+, +:scope+ and +:options+, corresponding to the parameters in
     # {#initialize}, and +:model+, representing the model class.
     #
     # Such a name was deliberately selected for this method in order to reduce namespace
@@ -214,7 +218,8 @@ module Heimdallr
       {
         model:   @scope,
         context: @context,
-        scope:   @scope
+        scope:   @scope,
+        options: @options
       }
     end
   end

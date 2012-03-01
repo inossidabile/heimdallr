@@ -163,7 +163,7 @@ module Heimdallr
     # restricts the result of {#scoped_model} with +security_context+,
     # which is expected to be defined on this class or its ancestors.
     def restricted_model
-      scoped_model.restrict(security_context)
+      scoped_model.restrict(security_context, implicit: true)
     end
 
     # Loads all resources in the current scope to +@resources+.
