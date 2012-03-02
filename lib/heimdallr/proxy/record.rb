@@ -169,8 +169,10 @@ module Heimdallr
         suffix = nil
       end
 
-      if defined?(ActiveRecord) && @record.is_a?(ActiveRecord::Reflection) &&
-          association = @record.class.reflect_on_association(method)
+      if (defined?(ActiveRecord) && @record.is_a?(ActiveRecord::Reflection) &&
+          association = @record.class.reflect_on_association(method)) ||
+         (!@record.class.heimdallr_relations.nil? &&
+          @record.class.heimdallr_relations.include?(normalized_method))
         referenced = @record.send(method, *args)
 
         if referenced.nil?

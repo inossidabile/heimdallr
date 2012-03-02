@@ -60,6 +60,18 @@ module Heimdallr
 
         super
       end
+
+      # @api private
+      #
+      # An internal attribute to store the list of user-defined relation-like methods
+      # which return ActiveRecord family objects and can be automatically restricted.
+      attr_accessor :heimdallr_relations
+
+      # A DSL method for defining relation-like methods.
+      def heimdallr_relation(*methods)
+        self.heimdallr_relations ||= []
+        self.heimdallr_relations  += methods.map(&:to_sym)
+      end
     end
 
     # Return a secure proxy object for this record.
