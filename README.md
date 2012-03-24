@@ -96,15 +96,6 @@ Not all methods will raise an exception on invalid access; some will silently dr
 attribute or return `nil`. This is clearly described in the documentation and done purposely to allow for
 writing uncrufted code in templates (particularly [JBuilder](http://github.com/rails/jbuilder) ones).
 
-REST interface
---------------
-
-Heimdallr also favors REST pattern; while its use is not mandated, a Heimdallr::Resource module is provided, which
-implements all standard REST actions with the extension of allowing to pass multiple models at once, and also enables
-one to introspect all writable fields with `new` and `edit` actions.
-
-The interface is described in documentation for [Heimdallr::Resource](http://rubydoc.info/gems/heimdallr/0.0.2/Heimdallr/Resource).
-
 Compatibility
 -------------
 

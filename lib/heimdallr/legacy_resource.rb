@@ -28,7 +28,7 @@ module Heimdallr
   # Resource only works with ActiveRecord.
   #
   # See also {Resource::ClassMethods}.
-  module Resource
+  module LegacyResource
     # @group Actions
 
     # +GET /resources+
