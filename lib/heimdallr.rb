@@ -1,4 +1,5 @@
 require "active_support"
+require "active_support/core_ext/module/delegation"
 require "active_model"
 
 # See {file:README.yard}.
@@ -45,4 +46,4 @@ require "heimdallr/proxy/record"
 require "heimdallr/validator"
 require "heimdallr/evaluator"
 require "heimdallr/model"
-require "heimdallr/resource"
+require "heimdallr/legacy_resource"
