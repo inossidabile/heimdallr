@@ -297,6 +297,18 @@ module Heimdallr
         raise Heimdallr::InsecureOperationError,
             "Saving while omitting validation would omit security validations too"
       end
+
+      if @record.new_record?
+        unless @restrictions.can? :create
+          raise Heimdallr::InsecureOperationError,
+              "Creating was not explicitly allowed"
+        end
+      else
+        unless @restrictions.can? :update
+          raise Heimdallr::InsecureOperationError,
+              "Updating was not explicitly allowed"
+        end
+      end
     end
   end
 end

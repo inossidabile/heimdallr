@@ -120,6 +120,15 @@ module Heimdallr
       end
     end
 
+
+    # Check if any explicit restrictions were defined for +action+.
+    # +can :create, []+ _is_ an explicit restriction for action +:create+.
+    #
+    # @return Boolean
+    def can?(action)
+      @allowed_fields.include? action
+    end
+
     # Compute the restrictions for a given +context+. Invokes a +block+ passed to the
     # +initialize+ once.
     #
