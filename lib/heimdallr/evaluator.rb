@@ -129,6 +129,14 @@ module Heimdallr
       @allowed_fields.include? action
     end
 
+    # Return a Hash to be mixed in in +reflect_on_security+ methods of {Proxy::Collection}
+    # and {Proxy::Record}.
+    def reflection
+      {
+        operations: [ :view, :create, :update ].select { |op| can? op }
+      }
+    end
+
     # Compute the restrictions for a given +context+. Invokes a +block+ passed to the
     # +initialize+ once.
     #

@@ -220,7 +220,7 @@ module Heimdallr
         context: @context,
         scope:   @scope,
         options: @options
-      }
+      }.merge(@restrictions.reflection)
     end
   end
 end

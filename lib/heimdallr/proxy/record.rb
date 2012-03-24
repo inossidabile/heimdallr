@@ -247,7 +247,7 @@ module Heimdallr
         context: @context,
         record:  @record,
         options: @options
-      }
+      }.merge(@restrictions.reflection)
     end
 
     protected
