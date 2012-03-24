@@ -19,17 +19,19 @@ class Article < ActiveRecord::Base
   restrict do |user|
     if user.admin? || user == self.owner
       # Administrator or owner can do everything
-      can :fetch
-      can [:view, :create, :update, :destroy]
+      scope :fetch
+      scope :destroy
+      can [:view, :create, :update]
     else
       # Other users can view only non-classified articles...
-      can :fetch, -> { where('secrecy_level < ?', 5) }
+      scope :fetch, -> { where('secrecy_level < ?', 5) }
 
       # ... and see all fields except the actual security level...
       can    :view
       cannot :view, [:secrecy_level]
 
       # ... and can create them with certain restrictions.
+      can :create, %w(content)
       can [:create, :update], {
         owner:         user,
         secrecy_level: { inclusion: { in: 0..4 } }
@@ -70,7 +72,7 @@ secure.create! content: "My second article"
 
 # ... and cannot be changed:
 secure.create! owner: admin, content: "I'm a haxx0r"
-# ! ActiveRecord::RecordInvalid is raised
+# ! Heimdallr::PermissionError is raised
 
 # You can use any valid ActiveRecord validators, too:
 secure.create! content: "Top Secret", secrecy_level: 10

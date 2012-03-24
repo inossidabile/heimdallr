@@ -19,17 +19,19 @@ class Article < ActiveRecord::Base
   restrict do |user|
     if user.admin? || user == self.owner
       # Administrator or owner can do everything
-      can :fetch
-      can [:view, :create, :update, :destroy]
+      scope :fetch
+      scope :destroy
+      can [:view, :create, :update]
     else
       # Other users can view only non-classified articles...
-      can :fetch, -> { where('secrecy_level < ?', 5) }
+      scope :fetch, -> { where('secrecy_level < ?', 5) }
 
       # ... and see all fields except the actual security level...
       can    :view
       cannot :view, [:secrecy_level]
 
       # ... and can create them with certain restrictions.
+      can :create, %w(content)
       can [:create, :update], {
         owner:         user,
         secrecy_level: { inclusion: { in: 0..4 } }
@@ -52,12 +54,17 @@ secure = Article.restrict(johndoe)
 # Use any ARel methods:
 secure.pluck(:content)
 # => ["Nothing happens", "Hello World"]
-secure.find(1).secrecy_level
-# => nil
 
 # Everything should be permitted explicitly:
 secure.first.delete
 # ! Heimdallr::PermissionError is raised
+secure.find(1).secrecy_level
+# ! Heimdallr::PermissionError is raised
+
+# There is a helper for views to be easily written:
+view_passed = secure.first.implicit
+view_passed.secrecy_level
+# => nil
 
 # If only a single value is possible, it is inferred automatically:
 secure.create! content: "My second article"
@@ -65,7 +72,7 @@ secure.create! content: "My second article"
 
 # ... and cannot be changed:
 secure.create! owner: admin, content: "I'm a haxx0r"
-# ! ActiveRecord::RecordInvalid is raised
+# ! Heimdallr::PermissionError is raised
 
 # You can use any valid ActiveRecord validators, too:
 secure.create! content: "Top Secret", secrecy_level: 10
@@ -90,15 +97,6 @@ method which returns the underlying object. This single point of entry is easily
 Not all methods will raise an exception on invalid access; some will silently drop the offending
 attribute or return `nil`. This is clearly described in the documentation and done purposely to allow for
 writing uncrufted code in templates (particularly [JBuilder](http://github.com/rails/jbuilder) ones).
-
-REST interface
---------------
-
-Heimdallr also favors REST pattern; while its use is not mandated, a Heimdallr::Resource module is provided, which
-implements all standard REST actions with the extension of allowing to pass multiple models at once, and also enables
-one to introspect all writable fields with `new` and `edit` actions.
-
-The interface is described in documentation for {Heimdallr::Resource}.
 
 Compatibility
 -------------
