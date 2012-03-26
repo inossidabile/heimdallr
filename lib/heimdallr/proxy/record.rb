@@ -105,10 +105,6 @@ module Heimdallr
       class_eval(<<-EOM, __FILE__, __LINE__)
       def #{method}
         scope = @restrictions.request_scope(:delete)
-        unless scope
-          raise RuntimeError, "The :delete scope is not defined"
-        end
-
         if scope.where({ @record.class.primary_key => @record.to_key }).count != 0
           @record.#{method}
         end

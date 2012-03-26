@@ -104,22 +104,25 @@ module Heimdallr
 
     # @endgroup
 
-    # Request a scope. Returns +nil+ if it does not exist.
+    # Request a scope.
     #
     # @param scope name of the scope
     # @param basic_scope the scope to which scope +name+ will be applied. Defaults to +:fetch+.
     #
-    # @return +ActiveRecord+ scope or +nil+
+    # @return +ActiveRecord+ scope.
+    #
+    # @raise [RuntimeError] if the scope is not defined
     def request_scope(name=:fetch, basic_scope=nil)
+      unless @scopes.has_key?(name)
+        raise RuntimeError, "The #{name.inspect} scope does not exist"
+      end
+
       if name == :fetch && basic_scope.nil?
         @model_class.instance_exec(&@scopes[:fetch])
-      elsif @scopes.has_key?(name)
-        (basic_scope || request_scope(:fetch)).instance_exec(&@scopes[name])
       else
-        nil
+        (basic_scope || request_scope(:fetch)).instance_exec(&@scopes[name])
       end
     end
-
 
     # Check if any explicit restrictions were defined for +action+.
     # +can :create, []+ _is_ an explicit restriction for action +:create+.
