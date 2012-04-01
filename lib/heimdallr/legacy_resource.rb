@@ -1,5 +1,8 @@
 module Heimdallr
-  # Heimdallr {Resource} is a boilerplate for simple creation of REST endpoints, most of which are
+  #
+  # @deprecated Will be removed ASAP. Please don't use it in favour of http://github.com/roundlake/heimdallr-resource/
+  #
+  # Heimdallr {LegacyResource} is a boilerplate for simple creation of REST endpoints, most of which are
   # quite similar and thus may share a lot of code.
   #
   # The minimal controller possible would be:
