@@ -85,7 +85,7 @@ secure.find 2
 # -- No, it is not.
 ```
 
-The DSL is described in documentation for [Heimdallr::Model](http://rubydoc.info/gems/heimdallr/0.0.2/Heimdallr/Model).
+The DSL is described in documentation for [Heimdallr::Model](http://rubydoc.info/gems/heimdallr/0.0.3/Heimdallr/Model).
 
 Ideology
 --------
@@ -94,9 +94,8 @@ Heimdallr aims to make security explicit, but nevertheless convenient. It does n
 implicit operations which may be used maliciously; instead, it forces you to explicitly call `#insecure`
 method which returns the underlying object. This single point of entry is easily recognizable with code.
 
-Not all methods will raise an exception on invalid access; some will silently drop the offending
-attribute or return `nil`. This is clearly described in the documentation and done purposely to allow for
-writing uncrufted code in templates (particularly [JBuilder](http://github.com/rails/jbuilder) ones).
+Heimdallr would raise exceptions in all cases of forbidden or potentially unsecure access except for attribute
+reading to allow for writing uncrufted code in templates (particularly [JBuilder](http://github.com/rails/jbuilder) ones).
 
 Compatibility
 -------------
