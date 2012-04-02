@@ -94,8 +94,18 @@ Heimdallr aims to make security explicit, but nevertheless convenient. It does n
 implicit operations which may be used maliciously; instead, it forces you to explicitly call `#insecure`
 method which returns the underlying object. This single point of entry is easily recognizable with code.
 
-Heimdallr would raise exceptions in all cases of forbidden or potentially unsecure access except for attribute
-reading to allow for writing uncrufted code in templates (particularly [JBuilder](http://github.com/rails/jbuilder) ones).
+Heimdallr has two restrictions strategies: explicit and implicit. By default it will use explicit strategy
+that means it will raise an exception for every insecure request. Calling `.implicit` will give you a copy
+of proxy object switched to another strategy. With that it will silently return nil for every attribute
+that is inaccessible.
+
+Typical cases
+-------------
+
+While working with MVC you'll mostly use Heimdallr-wrapped models inside your controllers and views. To
+protect your controllers using DSL from the model you can use [Heimdallr::Resource](http://github.com/roundlake/heimdallr-resource) extension gem.
+
+To facilitate views you can use `implicit` strategy which is described above.
 
 Compatibility
 -------------
@@ -106,6 +116,8 @@ Licensing
 ---------
 
     Copyright (C) 2012  Peter Zotov <whitequark@whitequark.org>
+    
+    Funded by Round Lake.
 
     Permission is hereby granted, free of charge, to any person obtaining a copy of
     this software and associated documentation files (the "Software"), to deal in
