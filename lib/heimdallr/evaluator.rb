@@ -28,8 +28,9 @@ module Heimdallr
     # Define a scope. A special +:fetch+ scope is applied to any other scope
     # automatically.
     #
-    # @overload scope(name, block)
-    #   This form accepts an explicit lambda.
+    # @overload scope(name, block=nil)
+    #   This form accepts an explicit lambda. If omitted, a scope will be
+    #   defined to include all possible records.
     #
     #   @example
     #       scope :fetch, -> { where(:protected => false) }
@@ -45,8 +46,8 @@ module Heimdallr
     #           where(:invisible => false)
     #         end
     #       end
-    def scope(name, explicit_block, &implicit_block)
-      @scopes[name] = explicit_block || implicit_block
+    def scope(name, explicit_block=nil, &implicit_block)
+      @scopes[name] = explicit_block || implicit_block || -> { scoped }
     end
 
     # Define allowed operations for action(s).
