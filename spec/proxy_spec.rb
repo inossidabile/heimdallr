@@ -109,6 +109,12 @@ describe Heimdallr::Proxy do
     article.restrict(@looser).implicit.secrecy_level.should == nil
   end
 
+  it "should answer if object is creatable" do
+    Article.restrict(@john).creatable?.should == true
+    Article.restrict(@admin).creatable?.should == true
+    Article.restrict(@looser).creatable?.should == true
+  end
+
   it "should answer if object is modifiable" do
     article = Article.create! :owner_id => @john.id, :content => 'test', :secrecy_level => 4
     article.restrict(@john).modifiable?.should == true

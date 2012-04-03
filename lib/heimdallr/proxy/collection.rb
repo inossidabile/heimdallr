@@ -222,5 +222,9 @@ module Heimdallr
         options: @options
       }.merge(@restrictions.reflection)
     end
+
+    def creatable?
+      @restrictions.can? :create
+    end
   end
 end

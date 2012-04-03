@@ -252,6 +252,10 @@ module Heimdallr
       }.merge(@restrictions.reflection)
     end
 
+    def creatable?
+      @restrictions.can? :create
+    end
+
     def modifiable?
       @restrictions.can? :update
     end
