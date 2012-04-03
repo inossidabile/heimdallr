@@ -246,6 +246,15 @@ module Heimdallr
       }.merge(@restrictions.reflection)
     end
 
+    def modifiable?
+      @restrictions.can? :create
+    end
+
+    def destroyable?
+      scope = @restrictions.request_scope(:delete)
+      scope.where({ @record.class.primary_key => @record.to_key }).count != 0
+    end
+
     protected
 
     # Raises an exception if any of the changed attributes are not valid
