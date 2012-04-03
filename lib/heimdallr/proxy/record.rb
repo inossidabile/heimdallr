@@ -253,7 +253,7 @@ module Heimdallr
     end
 
     def modifiable?
-      @restrictions.can? :create
+      @restrictions.can? :update
     end
 
     def destroyable?
