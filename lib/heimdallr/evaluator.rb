@@ -99,7 +99,7 @@ module Heimdallr
     def cannot(actions, fields)
       Array(actions).map(&:to_sym).each do |action|
         @allowed_fields[action] -= fields.map(&:to_sym)
-        @fixtures.delete_at *fields
+        fields.each { |field| @fixtures.delete field }
       end
     end
 
