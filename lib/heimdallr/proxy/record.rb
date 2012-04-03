@@ -105,8 +105,10 @@ module Heimdallr
       class_eval(<<-EOM, __FILE__, __LINE__)
       def #{method}
         scope = @restrictions.request_scope(:delete)
-        if scope.where({ @record.class.primary_key => @record.to_key }).count != 0
+        if scope.where({ @record.class.primary_key => @record.to_key }).any?
           @record.#{method}
+        else
+          raise PermissionError, "Deletion is forbidden"
         end
       end
       EOM
