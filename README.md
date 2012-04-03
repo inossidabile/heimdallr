@@ -25,7 +25,7 @@ class Article < ActiveRecord::Base
     else
       # Other users can view only their own or non-classified articles...
       scope :fetch,  -> { where('owner_id = ? or secrecy_level < ?', user.id, 5) }
-      scope :delete, -> { where('owner_id = ?', user.id)
+      scope :delete, -> { where('owner_id = ?', user.id) }
 
       # ... and see all fields except the actual security level
       # (through owners can see everything)...
@@ -122,7 +122,7 @@ Licensing
 ---------
 
     Copyright (C) 2012  Peter Zotov <whitequark@whitequark.org>
-    
+
     Funded by Round Lake.
 
     Permission is hereby granted, free of charge, to any person obtaining a copy of
