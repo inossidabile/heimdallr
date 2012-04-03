@@ -41,6 +41,7 @@ describe Heimdallr::Proxy do
   before(:all) do
     @john = User.create! :admin => false
     Article.create! :owner_id => @john.id, :content => 'test', :secrecy_level => 10
+    Article.create! :owner_id => @john.id, :content => 'test', :secrecy_level => 3
   end
 
   before(:each) do
@@ -57,8 +58,17 @@ describe Heimdallr::Proxy do
   end
 
   it "should handle fetch scope" do
-    Article.restrict(@john).all.count.should == 1
-    Article.restrict(@admin).all.count.should == 1
-    Article.restrict(@looser).all.count.should == 0
+    Article.restrict(@admin).all.count.should == 2
+    Article.restrict(@looser).all.count.should == 1
+    Article.restrict(@john).all.count.should == 2
+  end
+
+  it "should handle destroy scope" do
+    article = Article.create! :owner_id => @john.id, :content => 'test', :secrecy_level => 0
+    expect { article.restrict(@looser).destroy }.should raise_error
+    expect { article.restrict(@john).destroy }.should_not raise_error
+
+    article = Article.create! :owner_id => @john.id, :content => 'test', :secrecy_level => 0
+    expect { article.restrict(@admin).destroy }.should raise_error
   end
 end
