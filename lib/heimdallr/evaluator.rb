@@ -141,12 +141,12 @@ module Heimdallr
       }
     end
 
-    # Compute the restrictions for a given +context+. Invokes a +block+ passed to the
-    # +initialize+ once.
+    # Compute the restrictions for a given +context+ and possibly a specific +record+.
+    # Invokes a +block+ passed to the +initialize+ once.
     #
     # @raise [RuntimeError] if the evaluated block did not define a set of valid restrictions
-    def evaluate(context)
-      if context != @last_context
+    def evaluate(context, record=nil)
+      if [context, record] != @last_context
         @scopes         = {}
         @allowed_fields = Hash.new { [] }
         @validators     = Hash.new { [] }
@@ -167,7 +167,7 @@ module Heimdallr
         [@scopes, @allowed_fields, @validators, @fixtures].
               map(&:freeze)
 
-        @last_context = context
+        @last_context = [context, record]
       end
 
       self

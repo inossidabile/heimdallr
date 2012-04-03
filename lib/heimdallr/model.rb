@@ -39,11 +39,11 @@ module Heimdallr
         end
       end
 
-      # Evaluate the restrictions for a given +context+.
+      # Evaluate the restrictions for a given +context+ and +record+.
       #
       # @return [Evaluator]
-      def restrictions(context)
-        @restrictions.evaluate(context)
+      def restrictions(context, record=nil)
+        @restrictions.evaluate(context, record)
       end
 
       # @api private
