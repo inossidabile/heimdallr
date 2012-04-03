@@ -158,7 +158,7 @@ module Heimdallr
 
         @allowed_fields[:view] += [ :id ]
 
-        instance_exec context, &@block
+        instance_exec context, record, &@block
 
         unless @scopes[:fetch]
           raise RuntimeError, "A :fetch scope must be defined"

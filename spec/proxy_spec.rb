@@ -21,7 +21,10 @@ class Article < ActiveRecord::Base
       # ... and see all fields except the actual security level
       # (through owners can see everything)...
       if record.try(:owner) == user
-        can    :view
+        can :view
+        can :update, {
+          secrecy_level: { inclusion: { in: 0..4 } }
+        }
       else
         can    :view
         cannot :view, [:secrecy_level]
@@ -29,7 +32,7 @@ class Article < ActiveRecord::Base
 
       # ... and can create them with certain restrictions.
       can :create, %w(content)
-      can [:create, :update], {
+      can :create, {
         owner_id:      user.id,
         secrecy_level: { inclusion: { in: 0..4 } }
       }
@@ -76,7 +79,7 @@ describe Heimdallr::Proxy do
     article = Article.create! :owner_id => @john.id, :content => 'test', :secrecy_level => 0
     expect { article.restrict(@looser).secrecy_level }.should raise_error
     expect { article.restrict(@admin).secrecy_level }.should_not raise_error
-    expect { article.restrict(@john).secrecy_level }.should raise_error
+    expect { article.restrict(@john).secrecy_level }.should_not raise_error
     article.restrict(@looser).content.should == 'test'
   end
 
@@ -96,7 +99,7 @@ describe Heimdallr::Proxy do
       article.restrict(@looser).update_attributes! :secrecy_level => 3
     }.should raise_error
     expect {
-      article.restrict(@john).update_attributes! :secrecy_level => 10
+      article.restrict(@admin).update_attributes! :secrecy_level => 10
     }.should_not raise_error
   end
 

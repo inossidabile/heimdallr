@@ -30,7 +30,10 @@ class Article < ActiveRecord::Base
       # ... and see all fields except the actual security level
       # (through owners can see everything)...
       if record.try(:owner) == user
-        can    :view
+        can :view
+        can :update, {
+          secrecy_level: { inclusion: { in: 0..4 } }
+        }
       else
         can    :view
         cannot :view, [:secrecy_level]
@@ -38,8 +41,8 @@ class Article < ActiveRecord::Base
 
       # ... and can create them with certain restrictions.
       can :create, %w(content)
-      can [:create, :update], {
-        owner_id:      user,
+      can :create, {
+        owner_id:      user.id,
         secrecy_level: { inclusion: { in: 0..4 } }
       }
     end
