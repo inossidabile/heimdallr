@@ -18,7 +18,7 @@ class Entity < ActiveRecord::Base
   belongs_to :owner, :class_name => 'User'
 
   restrict do |user|
-    if user.admin? || user == self.owner
+    if user.admin? #|| user == self.owner
       # Administrator or owner can do everything
       scope :fetch
       scope :destroy
@@ -49,5 +49,9 @@ describe Heimdallr::Proxy do
 
   it "should apply restrictions" do
     proxy = Entity.restrict(@admin)
+    proxy.should be_a_kind_of Heimdallr::Proxy::Collection
+
+    proxy = Entity.restrict(@looser)
+    proxy.should be_a_kind_of Heimdallr::Proxy::Collection
   end
 end
