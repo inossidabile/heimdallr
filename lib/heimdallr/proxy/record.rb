@@ -130,6 +130,10 @@ module Heimdallr
     # @macro delegate
     delegate :assign_attributes, :to => :@record
 
+    # @method attributes=
+    # @macro delegate
+    delegate :attributes=, :to => :@record
+
     # Class name of the underlying model.
     # @return [String]
     def class_name

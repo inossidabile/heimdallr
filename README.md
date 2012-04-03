@@ -39,7 +39,7 @@ class Article < ActiveRecord::Base
       # ... and can create them with certain restrictions.
       can :create, %w(content)
       can [:create, :update], {
-        owner:         user,
+        owner_id:      user,
         secrecy_level: { inclusion: { in: 0..4 } }
       }
     end

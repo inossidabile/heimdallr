@@ -30,7 +30,7 @@ class Article < ActiveRecord::Base
       # ... and can create them with certain restrictions.
       can :create, %w(content)
       can [:create, :update], {
-        owner:         user,
+        owner_id:      user.id,
         secrecy_level: { inclusion: { in: 0..4 } }
       }
     end
@@ -84,25 +84,19 @@ describe Heimdallr::Proxy do
     expect { Article.restrict(@looser).create! :content => 'test', :secrecy_level => 10 }.should raise_error
 
     article = Article.restrict(@john).create! :content => 'test', :secrecy_level => 3
-    article.owner.should == @john
-  end
-  it "should handle entities creation" do
-    expect { Article.restrict(@looser).create! :content => 'test', :secrecy_level => 10 }.should raise_error
-
-    article = Article.restrict(@john).create! :content => 'test', :secrecy_level => 3
-    article.owner.should == @john
+    article.owner_id.should == @john.id
   end
 
   it "should handle entities update" do
     article = Article.create! :owner_id => @john.id, :content => 'test', :secrecy_level => 10
     expect {
-      article.restrict(@john).attributes = {:secrecy_level => 8}
+      article.restrict(@john).update_attributes :secrecy_level => 8
     }.should raise_error
     expect {
-      article.restrict(@looser).attributes = {:secrecy_level => 3}
+      article.restrict(@looser).update_attributes :secrecy_level => 3
     }.should raise_error
     expect {
-      article.restrict(@john).attributes = {:secrecy_level => 10}
+      article.restrict(@john).update_attributes :secrecy_level => 10
     }.should_not raise_error
   end
 end
