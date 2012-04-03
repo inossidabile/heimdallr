@@ -90,13 +90,33 @@ describe Heimdallr::Proxy do
   it "should handle entities update" do
     article = Article.create! :owner_id => @john.id, :content => 'test', :secrecy_level => 10
     expect {
-      article.restrict(@john).update_attributes :secrecy_level => 8
+      article.restrict(@john).update_attributes! :secrecy_level => 8
     }.should raise_error
     expect {
-      article.restrict(@looser).update_attributes :secrecy_level => 3
+      article.restrict(@looser).update_attributes! :secrecy_level => 3
     }.should raise_error
     expect {
-      article.restrict(@john).update_attributes :secrecy_level => 10
+      article.restrict(@john).update_attributes! :secrecy_level => 10
     }.should_not raise_error
+  end
+
+  it "should handle implicit strategy" do
+    article = Article.create! :owner_id => @john.id, :content => 'test', :secrecy_level => 4
+    expect { article.restrict(@looser).secrecy_level }.should raise_error
+    article.restrict(@looser).implicit.secrecy_level.should == nil
+  end
+
+  it "should answer if object is modifiable" do
+    article = Article.create! :owner_id => @john.id, :content => 'test', :secrecy_level => 4
+    article.restrict(@john).modifiable?.should == true
+    article.restrict(@admin).modifiable?.should == true
+    article.restrict(@looser).modifiable?.should == false
+  end
+
+  it "should answer if object is destroyable" do
+    article = Article.create! :owner_id => @john.id, :content => 'test', :secrecy_level => 4
+    article.restrict(@john).destroyable?.should == true
+    article.restrict(@admin).destroyable?.should == true
+    article.restrict(@looser).destroyable?.should == false
   end
 end
