@@ -69,6 +69,40 @@ describe Heimdallr::Proxy do
     expect { article.restrict(@john).destroy }.should_not raise_error
 
     article = Article.create! :owner_id => @john.id, :content => 'test', :secrecy_level => 0
-    expect { article.restrict(@admin).destroy }.should raise_error
+    expect { article.restrict(@admin).destroy }.should_not raise_error
+  end
+
+  it "should handle list of fields to view" do
+    article = Article.create! :owner_id => @john.id, :content => 'test', :secrecy_level => 0
+    expect { article.restrict(@looser).secrecy_level }.should raise_error
+    expect { article.restrict(@admin).secrecy_level }.should_not raise_error
+    expect { article.restrict(@john).secrecy_level }.should raise_error
+    article.restrict(@looser).content.should == 'test'
+  end
+
+  it "should handle entities creation" do
+    expect { Article.restrict(@looser).create! :content => 'test', :secrecy_level => 10 }.should raise_error
+
+    article = Article.restrict(@john).create! :content => 'test', :secrecy_level => 3
+    article.owner.should == @john
+  end
+  it "should handle entities creation" do
+    expect { Article.restrict(@looser).create! :content => 'test', :secrecy_level => 10 }.should raise_error
+
+    article = Article.restrict(@john).create! :content => 'test', :secrecy_level => 3
+    article.owner.should == @john
+  end
+
+  it "should handle entities update" do
+    article = Article.create! :owner_id => @john.id, :content => 'test', :secrecy_level => 10
+    expect {
+      article.restrict(@john).attributes = {:secrecy_level => 8}
+    }.should raise_error
+    expect {
+      article.restrict(@looser).attributes = {:secrecy_level => 3}
+    }.should raise_error
+    expect {
+      article.restrict(@john).attributes = {:secrecy_level => 10}
+    }.should_not raise_error
   end
 end
