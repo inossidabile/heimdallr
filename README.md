@@ -85,7 +85,7 @@ secure.find 2
 # -- No, it is not.
 ```
 
-The DSL is described in documentation for [Heimdallr::Model](http://rubydoc.info/gems/heimdallr/0.0.3/Heimdallr/Model).
+The DSL is described in documentation for [Heimdallr::Model](http://rubydoc.info/gems/heimdallr/master/Heimdallr/Model).
 
 Ideology
 --------
