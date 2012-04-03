@@ -47,7 +47,7 @@ module Heimdallr
     #         end
     #       end
     def scope(name, explicit_block=nil, &implicit_block)
-      unless [:fetch, :destroy].include?(name)
+      unless [:fetch, :delete].include?(name)
         raise "There is no such scope as #{name}"
       end
 

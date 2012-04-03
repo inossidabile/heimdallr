@@ -11,12 +11,12 @@ class Article < ActiveRecord::Base
     if user.admin?
       # Administrator or owner can do everything
       scope :fetch
-      scope :destroy
+      scope :delete
       can [:view, :create, :update]
     else
       # Other users can view only their own or non-classified articles...
-      scope :fetch,   -> { where('owner_id = ? or secrecy_level < ?', user.id, 5) }
-      scope :destroy, -> { where('owner_id = ?', user.id) }
+      scope :fetch,  -> { where('owner_id = ? or secrecy_level < ?', user.id, 5) }
+      scope :delete, -> { where('owner_id = ?', user.id) }
 
       # ... and see all fields except the actual security level
       # (through owners can see everything)...
