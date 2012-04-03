@@ -1,18 +1,8 @@
 require 'spec_helper'
 
-class User
-  attr_accessor :admin
+class User < ActiveRecord::Base; end
 
-  def initialize(admin)
-    @admin = admin
-  end
-
-  def admin?
-    @admin
-  end
-end
-
-class Entity < ActiveRecord::Base
+class Article < ActiveRecord::Base
   include Heimdallr::Model
 
   belongs_to :owner, :class_name => 'User'
@@ -42,16 +32,27 @@ class Entity < ActiveRecord::Base
 end
 
 describe Heimdallr::Proxy do
+  before(:all) do
+    @john = User.create! :admin => false
+    Article.create! :owner_id => @john.id, :content => 'test', :secrecy_level => 10
+  end
+
   before(:each) do
-    @admin  = User.new(true)
-    @looser = User.new(false)
+    @admin  = User.new :admin => true
+    @looser = User.new :admin => false
   end
 
   it "should apply restrictions" do
-    proxy = Entity.restrict(@admin)
+    proxy = Article.restrict(@admin)
     proxy.should be_a_kind_of Heimdallr::Proxy::Collection
 
-    proxy = Entity.restrict(@looser)
+    proxy = Article.restrict(@looser)
     proxy.should be_a_kind_of Heimdallr::Proxy::Collection
+  end
+
+  it "should handle fetch scope" do
+    Article.restrict(@john).all.count.should == 1
+    Article.restrict(@admin).all.count.should == 1
+    Article.restrict(@looser).all.count.should == 0
   end
 end

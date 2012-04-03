@@ -10,6 +10,13 @@ ActiveRecord::Base.logger = Logger.new('tmp/debug.log')
 ActiveRecord::Base.configurations = YAML::load(IO.read('tmp/database.yml'))
 ActiveRecord::Base.establish_connection('test')
 
-RSpec.configure do |config|
-  # See http://rubydoc.info/gems/rspec-core/RSpec/Core/Configuration
+ActiveRecord::Base.connection.create_table(:users) do |t|
+  t.boolean     :admin
+end
+
+ActiveRecord::Base.connection.create_table(:articles) do |t|
+  t.belongs_to  :owner
+  t.text        :content
+  t.integer     :secrecy_level
+  t.timestamps
 end
