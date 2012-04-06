@@ -32,6 +32,7 @@ class Article < ActiveRecord::Base
       if record.try(:owner) == user
         can :view
         can :update, {
+          # each field may have validators that will allow update
           secrecy_level: { inclusion: { in: 0..4 } }
         }
       else
@@ -42,6 +43,7 @@ class Article < ActiveRecord::Base
       # ... and can create them with certain restrictions.
       can :create, %w(content)
       can :create, {
+        # each field may have fixed value that cannot be overridden
         owner_id:      user.id,
         secrecy_level: { inclusion: { in: 0..4 } }
       }
