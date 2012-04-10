@@ -140,11 +140,16 @@ module Heimdallr
       @record.class.name
     end
 
-    # Records cannot be restricted twice.
+    # Records cannot be restricted with different context or options.
     #
+    # @return self
     # @raise [RuntimeError]
-    def restrict(context)
-      raise RuntimeError, "Records cannot be restricted twice"
+    def restrict(context, options={})
+      if @content == context && options.nil?
+        self
+      else
+        raise RuntimeError, "Heimdallr proxies cannot be restricted with nonmatching context or options"
+      end
     end
 
     # A whitelisting dispatcher for attribute-related method calls.

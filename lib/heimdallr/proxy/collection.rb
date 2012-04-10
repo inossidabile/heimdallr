@@ -21,11 +21,16 @@ module Heimdallr
       @restrictions = @scope.restrictions(context)
     end
 
-    # Collections cannot be restricted twice.
+    # Collections cannot be restricted with different context or options.
     #
+    # @return self
     # @raise [RuntimeError]
-    def restrict(*args)
-      raise RuntimeError, "Collections cannot be restricted twice"
+    def restrict(context, options=nil)
+      if @content == context && options.nil?
+        self
+      else
+        raise RuntimeError, "Heimdallr proxies cannot be restricted with nonmatching context or options"
+      end
     end
 
     # @private
