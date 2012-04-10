@@ -213,7 +213,7 @@ module Heimdallr
 
     # Return the associated security metadata. The returned hash will contain keys
     # +:context+, +:scope+ and +:options+, corresponding to the parameters in
-    # {#initialize}, and +:model+, representing the model class.
+    # {#initialize}, +:model+ and +:restrictions+, representing the model class.
     #
     # Such a name was deliberately selected for this method in order to reduce namespace
     # pollution.
@@ -221,10 +221,11 @@ module Heimdallr
     # @return [Hash]
     def reflect_on_security
       {
-        model:   @scope,
-        context: @context,
-        scope:   @scope,
-        options: @options
+        model:        @scope,
+        context:      @context,
+        scope:        @scope,
+        options:      @options,
+        restrictions: @restrictions,
       }.merge(@restrictions.reflection)
     end
 
