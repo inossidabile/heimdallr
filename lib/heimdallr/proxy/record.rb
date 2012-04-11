@@ -144,7 +144,7 @@ module Heimdallr
     #
     # @return self
     # @raise [RuntimeError]
-    def restrict(context, options={})
+    def restrict(context, options=nil)
       if @content == context && options.nil?
         self
       else
