@@ -26,7 +26,7 @@ module Heimdallr
     # @return self
     # @raise [RuntimeError]
     def restrict(context, options=nil)
-      if @content == context && options.nil?
+      if @context == context && options.nil?
         self
       else
         raise RuntimeError, "Heimdallr proxies cannot be restricted with nonmatching context or options"
