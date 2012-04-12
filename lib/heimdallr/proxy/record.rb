@@ -195,7 +195,12 @@ module Heimdallr
       elsif @record.respond_to? method
         if [nil, '?'].include?(suffix)
           if @restrictions.allowed_fields[:view].include?(normalized_method)
-            @record.send method, *args, &block
+            result = @record.send method, *args, &block
+            if result.respond_to? :restrict
+              result.restrict(@context, @options)
+            else
+              result
+            end
           elsif @options[:implicit]
             nil
           else
