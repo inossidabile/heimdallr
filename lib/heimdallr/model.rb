@@ -35,7 +35,7 @@ module Heimdallr
         if block
           @restrictions = Evaluator.new(self, block)
         else
-          Proxy::Collection.new(context, restrictions(context).request_scope, options)
+          Proxy::Collection.new(context, restrictions(context).request_scope(:fetch, self), options)
         end
       end
 

@@ -19,6 +19,7 @@ module Heimdallr
       @context, @scope, @options = context, scope, options
 
       @restrictions = @scope.restrictions(context)
+      @eager_loaded = []
     end
 
     # Collections cannot be restricted with different context or options.
@@ -113,9 +114,6 @@ module Heimdallr
     delegate_as_scope :uniq
     delegate_as_scope :where
     delegate_as_scope :joins
-    delegate_as_scope :includes
-    delegate_as_scope :eager_load
-    delegate_as_scope :preload
     delegate_as_scope :lock
     delegate_as_scope :limit
     delegate_as_scope :offset
@@ -153,6 +151,23 @@ module Heimdallr
     delegate_as_records :all
     delegate_as_records :to_a
     delegate_as_records :to_ary
+
+    # A proxy for +includes+ which adds Heimdallr conditions for eager loaded
+    # associations.
+    def includes(*associations)
+      scope = @scope.includes(associations)
+
+      associations.each do |association|
+        associated_klass = @scope.reflect_on_association(association).klass
+
+        if associated_klass.respond_to? :restrict
+          nested_scope = associated_klass.restrictions(@context).request_scope(:fetch)
+          scope = scope.where(*nested_scope.where_values)
+        end
+      end
+
+      scope
+    end
 
     # A proxy for +find+ which restricts the returned record or records.
     #
