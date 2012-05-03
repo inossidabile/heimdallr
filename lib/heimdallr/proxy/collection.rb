@@ -19,7 +19,7 @@ module Heimdallr
       @context, @scope, @options = context, scope, options
 
       @restrictions = @scope.restrictions(context)
-      @eager_loaded = []
+      @options[:eager_loaded] ||= []
     end
 
     # Collections cannot be restricted with different context or options.
@@ -41,7 +41,7 @@ module Heimdallr
     def self.delegate_as_constructor(name, method)
       class_eval(<<-EOM, __FILE__, __LINE__)
       def #{name}(attributes={})
-        record = @restrictions.request_scope(:fetch).new.restrict(@context, @options)
+        record = @restrictions.request_scope(:fetch).new.restrict(@context, options_with_escape)
         record.#{method}(attributes.merge(@restrictions.fixtures[:create]))
         record
       end
@@ -54,7 +54,7 @@ module Heimdallr
     def self.delegate_as_scope(name)
       class_eval(<<-EOM, __FILE__, __LINE__)
       def #{name}(*args)
-        Proxy::Collection.new(@context, @scope.#{name}(*args), @options)
+        Proxy::Collection.new(@context, @scope.#{name}(*args), options_with_escape)
       end
       EOM
     end
@@ -76,7 +76,7 @@ module Heimdallr
     def self.delegate_as_record(name)
       class_eval(<<-EOM, __FILE__, __LINE__)
       def #{name}(*args)
-        @scope.#{name}(*args).restrict(@context, @options)
+        @scope.#{name}(*args).restrict(@context, options_with_eager_load)
       end
       EOM
     end
@@ -88,7 +88,7 @@ module Heimdallr
       class_eval(<<-EOM, __FILE__, __LINE__)
       def #{name}(*args)
         @scope.#{name}(*args).map do |element|
-          element.restrict(@context, @options)
+          element.restrict(@context, options_with_eager_load)
         end
       end
       EOM
@@ -158,15 +158,20 @@ module Heimdallr
       scope = @scope.includes(associations)
 
       associations.each do |association|
-        associated_klass = @scope.reflect_on_association(association).klass
+        reflection = @scope.reflect_on_association(association)
+        unless reflection.options[:polymorphic]
+          associated_klass = reflection.klass
 
-        if associated_klass.respond_to? :restrict
-          nested_scope = associated_klass.restrictions(@context).request_scope(:fetch)
-          scope = scope.where(*nested_scope.where_values)
+          if associated_klass.respond_to? :restrict
+            nested_scope = associated_klass.restrictions(@context).request_scope(:fetch)
+            scope = scope.where(*nested_scope.where_values)
+
+            @options[:eager_loaded].push association
+          end
         end
       end
 
-      scope
+      Proxy::Collection.new(@context, scope, options_with_eager_load)
     end
 
     # A proxy for +find+ which restricts the returned record or records.
@@ -177,10 +182,10 @@ module Heimdallr
 
       if result.is_a? Enumerable
         result.map do |element|
-          element.restrict(@context, @options)
+          element.restrict(@context, options_with_eager_load)
         end
       else
-        result.restrict(@context, @options)
+        result.restrict(@context, options_with_eager_load)
       end
     end
 
@@ -190,7 +195,7 @@ module Heimdallr
     # @yieldparam [Proxy::Record] record
     def each
       @scope.each do |record|
-        yield record.restrict(@context, @options)
+        yield record.restrict(@context, options_with_eager_load)
       end
     end
 
@@ -198,12 +203,12 @@ module Heimdallr
     def method_missing(method, *args)
       if method =~ /^find_all_by/
         @scope.send(method, *args).map do |element|
-          element.restrict(@context, @options)
+          element.restrict(@context, options_with_escape)
         end
       elsif method =~ /^find_by/
-        @scope.send(method, *args).restrict(@context, @options)
+        @scope.send(method, *args).restrict(@context, options_with_escape)
       elsif @scope.heimdallr_scopes && @scope.heimdallr_scopes.include?(method)
-        Proxy::Collection.new(@context, @scope.send(method, *args), @options)
+        Proxy::Collection.new(@context, @scope.send(method, *args), options_with_escape)
       elsif @scope.respond_to? method
         raise InsecureOperationError,
             "Potentially insecure method #{method} was called"
@@ -246,6 +251,19 @@ module Heimdallr
 
     def creatable?
       @restrictions.can? :create
+    end
+
+    private
+
+    # Return options hash to pass to children proxies.
+    # Currently this checks only eagerly loaded collections, which
+    # shouldn't be passed around blindly.
+    def options_with_escape
+      @options.reject { |k,v| k == :eager_loaded }
+    end
+
+    def options_with_eager_load
+      @options
     end
   end
 end

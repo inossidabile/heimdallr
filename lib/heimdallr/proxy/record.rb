@@ -19,6 +19,7 @@ module Heimdallr
       @context, @record, @options = context, record, options
 
       @restrictions = @record.class.restrictions(context, record)
+      @eager_loaded = options.dup.delete(:eager_loaded) || []
     end
 
     # @method decrement(field, by=1)
@@ -185,7 +186,11 @@ module Heimdallr
         if referenced.nil?
           nil
         elsif referenced.respond_to? :restrict
-          referenced.restrict(@context, @options)
+          if @eager_loaded.include? method
+            Proxy::Collection.new(@context, referenced, @options)
+          else
+            referenced.restrict(@context, @options)
+          end
         elsif Heimdallr.allow_insecure_associations
           referenced
         else
