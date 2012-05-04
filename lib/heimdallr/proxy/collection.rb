@@ -183,7 +183,11 @@ module Heimdallr
 
             if associated_klass.respond_to? :restrict
               nested_scope = associated_klass.restrictions(@context).request_scope(:fetch)
-              current_scope = current_scope.where(*nested_scope.where_values)
+
+              where_values = nested_scope.where_values
+              if where_values.any?
+                current_scope = current_scope.where(*where_values)
+              end
 
               add_conditions.(nested, associated_klass)
             end
