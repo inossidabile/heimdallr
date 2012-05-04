@@ -110,6 +110,9 @@ that means it will raise an exception for every insecure request. Calling `.impl
 of proxy object switched to another strategy. With that it will silently return nil for every attribute
 that is inaccessible.
 
+There are several options which alter Heimdallr's behavior in security-sensitive ways. They are described
+in [Heimdallr](http://rubydoc.info/gems/heimdallr/master/Heimdallr).
+
 Typical cases
 -------------
 
