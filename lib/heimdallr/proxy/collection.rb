@@ -19,7 +19,7 @@ module Heimdallr
       @context, @scope, @options = context, scope, options
 
       @restrictions = @scope.restrictions(context)
-      @options[:eager_loaded] ||= []
+      @options[:eager_loaded] ||= {}
     end
 
     # Collections cannot be restricted with different context or options.
@@ -155,23 +155,47 @@ module Heimdallr
     # A proxy for +includes+ which adds Heimdallr conditions for eager loaded
     # associations.
     def includes(*associations)
-      scope = @scope.includes(associations)
+      # Normalize association list to strict nested hash.
+      normalize = ->(list) {
+        if list.is_a? Array
+          hash = {}
+          list.each { |elem| hash[elem] = {} }
+          hash
+        elsif list.is_a? Hash
+          hash = {}
+          list.each do |key, value|
+            hash[key] = normalize.(value)
+          end
+          hash
+        elsif list.is_a? Symbol
+          { list => {} }
+        end
+      }
+      associations = associations.map(&normalize).reduce(:merge)
 
-      associations.each do |association|
-        reflection = @scope.reflect_on_association(association)
-        unless reflection.options[:polymorphic]
-          associated_klass = reflection.klass
+      current_scope = @scope.includes(associations)
 
-          if associated_klass.respond_to? :restrict
-            nested_scope = associated_klass.restrictions(@context).request_scope(:fetch)
-            scope = scope.where(*nested_scope.where_values)
+      add_conditions = ->(associations, scope) {
+        associations.each do |association, nested|
+          reflection = scope.reflect_on_association(association)
+          unless reflection.options[:polymorphic]
+            associated_klass = reflection.klass
 
-            @options[:eager_loaded].push association
+            if associated_klass.respond_to? :restrict
+              nested_scope = associated_klass.restrictions(@context).request_scope(:fetch)
+              current_scope = current_scope.where(*nested_scope.where_values)
+
+              add_conditions.(nested, associated_klass)
+            end
           end
         end
-      end
+      }
+      add_conditions.(associations, current_scope)
 
-      Proxy::Collection.new(@context, scope, options_with_eager_load)
+      options = @options.merge(eager_loaded:
+        @options[:eager_loaded].merge(associations))
+
+      Proxy::Collection.new(@context, current_scope, options)
     end
 
     # A proxy for +find+ which restricts the returned record or records.

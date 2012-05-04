@@ -16,10 +16,10 @@ module Heimdallr
     # @param object   proxified record
     # @option options [Boolean] implicit proxy type
     def initialize(context, record, options={})
-      @context, @record, @options = context, record, options
+      @context, @record, @options = context, record, options.dup
 
       @restrictions = @record.class.restrictions(context, record)
-      @eager_loaded = options.dup.delete(:eager_loaded) || []
+      @eager_loaded = @options.delete(:eager_loaded) || {}
     end
 
     # @method decrement(field, by=1)
@@ -177,7 +177,7 @@ module Heimdallr
         suffix = nil
       end
 
-      if (defined?(ActiveRecord) && @record.is_a?(ActiveRecord::Reflection) &&
+      if (@record.is_a?(ActiveRecord::Reflection) &&
           association = @record.class.reflect_on_association(method)) ||
          (!@record.class.heimdallr_relations.nil? &&
           @record.class.heimdallr_relations.include?(normalized_method))
@@ -186,8 +186,16 @@ module Heimdallr
         if referenced.nil?
           nil
         elsif referenced.respond_to? :restrict
-          if @eager_loaded.include? method
-            Proxy::Collection.new(@context, referenced, @options)
+          if @eager_loaded.include?(method)
+            options = @options.merge(eager_loaded: @eager_loaded[method])
+          else
+            options = @options
+          end
+
+          if association.collection? && @eager_loaded.include?(method)
+            # Don't re-restrict eagerly loaded collections to not
+            # discard preloaded data.
+            Proxy::Collection.new(@context, referenced, options)
           else
             referenced.restrict(@context, @options)
           end
