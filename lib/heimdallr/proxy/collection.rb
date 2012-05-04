@@ -158,27 +158,25 @@ module Heimdallr
       # Normalize association list to strict nested hash.
       normalize = ->(list) {
         if list.is_a? Array
-          hash = {}
-          list.each { |elem| hash[elem] = {} }
-          hash
+          list.map(&normalize).reduce(:merge)
+        elsif list.is_a? Symbol
+          { list => {} }
         elsif list.is_a? Hash
           hash = {}
           list.each do |key, value|
             hash[key] = normalize.(value)
           end
           hash
-        elsif list.is_a? Symbol
-          { list => {} }
         end
       }
-      associations = associations.map(&normalize).reduce(:merge)
+      associations = normalize.(associations)
 
       current_scope = @scope.includes(associations)
 
       add_conditions = ->(associations, scope) {
         associations.each do |association, nested|
           reflection = scope.reflect_on_association(association)
-          unless reflection.options[:polymorphic]
+          if reflection && !reflection.options[:polymorphic]
             associated_klass = reflection.klass
 
             if associated_klass.respond_to? :restrict
