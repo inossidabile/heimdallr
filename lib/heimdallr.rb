@@ -25,9 +25,24 @@ module Heimdallr
     #
     # @return [Boolean]
     attr_accessor :allow_insecure_associations
+
+    # Allow unrestricted association fetching in case of eager loading.
+    #
+    # By default, associations are restricted with fetch scope either when
+    # they are accessed or when they are eagerly loaded (with #includes).
+    # Condition injection on eager loads are known to be quirky in some cases,
+    # particularly deeply nested polymorphic associations, and if the layout
+    # of your database guarantees that any data fetched through explicitly
+    # eagerly loaded associations will be safe to view (or if you restrict
+    # it manually), you can enable this setting to skip automatic condition
+    # injection.
+    #
+    # @return [Boolean]
+    attr_accessor :skip_eager_condition_injection
   end
 
   self.allow_insecure_associations = false
+  self.skip_eager_condition_injection = false
 
   # {PermissionError} is raised when a security policy prevents
   # a called operation from being executed.

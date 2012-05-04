@@ -192,7 +192,10 @@ module Heimdallr
           end
         end
       }
-      add_conditions.(associations, current_scope)
+
+      unless Heimdallr.skip_eager_condition_injection
+        add_conditions.(associations, current_scope)
+      end
 
       options = @options.merge(eager_loaded:
         @options[:eager_loaded].merge(associations))
