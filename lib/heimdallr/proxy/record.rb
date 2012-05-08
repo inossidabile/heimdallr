@@ -41,6 +41,18 @@ module Heimdallr
     # and thus is not considered as a potential security threat.
     delegate :touch, :to => :@record
 
+    # @method model_name
+    # @macro delegate
+    delegate :model_name, :to => :@record
+
+    # @method to_key
+    # @macro delegate
+    delegate :to_key, :to => :@record
+
+    # @method to_param
+    # @macro delegate
+    delegate :to_param, :to => :@record
+
     # A proxy for +attributes+ method which removes all attributes
     # without +:view+ permission.
     def attributes
