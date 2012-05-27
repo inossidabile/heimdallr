@@ -113,6 +113,12 @@ that is inaccessible.
 There are several options which alter Heimdallr's behavior in security-sensitive ways. They are described
 in [Heimdallr](http://rubydoc.info/gems/heimdallr/master/Heimdallr).
 
+Rails notes
+-----------
+
+As of Rails 3.2.3 attr_accessible is in whitelist mode by default. That makes no sense when using Heimdallr. To 
+turn it off set the `config.active_record.whitelist_attributes` value to false at yours `application.rb`.
+
 Typical cases
 -------------
 
