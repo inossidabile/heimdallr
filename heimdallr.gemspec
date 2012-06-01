@@ -3,7 +3,7 @@ $:.push File.expand_path("../lib", __FILE__)
 
 Gem::Specification.new do |s|
   s.name        = "heimdallr"
-  s.version     = "1.0.3"
+  s.version     = "1.0.4"
   s.authors     = ["Peter Zotov", "Boris Staal"]
   s.email       = ["whitequark@whitequark.org", "boris@roundlake.ru"]
   s.homepage    = "http://github.com/roundlake/heimdallr"
