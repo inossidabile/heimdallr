@@ -288,6 +288,11 @@ module Heimdallr
       }.merge(@restrictions.reflection)
     end
 
+    def visible?
+      scope = @restrictions.request_scope(:fetch)
+      scope.where({ @record.class.primary_key => @record.to_key }).any?
+    end
+
     def creatable?
       @restrictions.can? :create
     end
