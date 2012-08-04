@@ -74,10 +74,8 @@ module Heimdallr
     #
     # @raise [Heimdallr::PermissionError]
     def update_attributes(attributes, options={})
-      @record.with_transaction_returning_status do
-        @record.assign_attributes(attributes, options)
-        save
-      end
+      @record.assign_attributes(attributes, options)
+      save
     end
 
     # A proxy for +update_attributes!+ method.
@@ -85,10 +83,8 @@ module Heimdallr
     #
     # @raise [Heimdallr::PermissionError]
     def update_attributes!(attributes, options={})
-      @record.with_transaction_returning_status do
-        @record.assign_attributes(attributes, options)
-        save!
-      end
+      @record.assign_attributes(attributes, options)
+      save!
     end
 
     # A proxy for +save+ method which verifies all of the dirty attributes to
@@ -122,7 +118,7 @@ module Heimdallr
       class_eval(<<-EOM, __FILE__, __LINE__)
       def #{method}
         scope = @restrictions.request_scope(:delete)
-        if scope.where({ @record.class.primary_key => @record.to_key }).any?
+        if record_in_scope? scope
           @record.#{method}
         else
           raise PermissionError, "Deletion is forbidden"
@@ -193,9 +189,9 @@ module Heimdallr
         suffix = nil
       end
 
-      if (@record.is_a?(ActiveRecord::Reflection) &&
+      if (@record.class.respond_to?(:reflect_on_association) &&
           association = @record.class.reflect_on_association(method)) ||
-         (!@record.class.heimdallr_relations.nil? &&
+         (@record.class.heimdallr_relations.respond_to?(:include?) &&
           @record.class.heimdallr_relations.include?(normalized_method))
         referenced = @record.send(method, *args)
 
@@ -294,7 +290,7 @@ module Heimdallr
 
     def visible?
       scope = @restrictions.request_scope(:fetch)
-      scope.where({ @record.class.primary_key => @record.to_key }).any?
+      record_in_scope? scope
     end
 
     def creatable?
@@ -307,7 +303,7 @@ module Heimdallr
 
     def destroyable?
       scope = @restrictions.request_scope(:delete)
-      scope.where({ @record.class.primary_key => @record.to_key }).any?
+      record_in_scope? scope
     end
 
     protected
@@ -369,6 +365,18 @@ module Heimdallr
               "Updating was not explicitly allowed"
         end
       end
+    end
+
+    def record_in_scope?(scope)
+      scope.where(primary_key => wrap_key(@record.to_key)).any?
+    end
+
+    def primary_key
+      @record.class.respond_to?(:primary_key) ? @record.class.primary_key : :id
+    end
+
+    def wrap_key(key)
+      key.is_a?(Array) ? key.first : key
     end
   end
 end

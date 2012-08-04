@@ -1,0 +1,50 @@
+Mongoid.load!('tmp/mongoid.yml', :test)
+
+class Mongoid::User
+  include Mongoid::Document
+  field :admin, type: Boolean
+end
+
+class Mongoid::Article
+  include Mongoid::Document
+  include Mongoid::Timestamps
+
+  field :content
+  field :secrecy_level, type: Fixnum
+
+  belongs_to :owner, class_name: 'Mongoid::User'
+
+  include Heimdallr::Model
+
+  restrict do |user, record|
+    if user.admin?
+      # Administrator or owner can do everything
+      scope :fetch
+      scope :delete
+      can [:view, :create, :update]
+    else
+      # Other users can view only their own or non-classified articles...
+      scope :fetch,  -> { scoped.or({owner_id: user.id}, {:secrecy_level.lt => 5}) }
+      scope :delete, -> { where(owner_id: user.id) }
+
+      # ... and see all fields except the actual security level
+      # (through owners can see everything)...
+      if record.try(:owner) == user
+        can :view
+        can :update, {
+          secrecy_level: { inclusion: { in: 0..4 } }
+        }
+      else
+        can    :view
+        cannot :view, [:secrecy_level]
+      end
+
+      # ... and can create them with certain restrictions.
+      can :create, %w(content)
+      can :create, {
+        owner_id:      user.id,
+        secrecy_level: { inclusion: { in: 0..4 } }
+      }
+    end
+  end
+end
