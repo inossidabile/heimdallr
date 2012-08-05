@@ -52,6 +52,10 @@ module Heimdallr
     # @method to_param
     # @macro delegate
     delegate :to_param, :to => :@record
+    
+    # @method to_partial_path
+    # @macro delegate
+    delegate :to_partial_path, :to => :@record
 
     # A proxy for +attributes+ method which removes all attributes
     # without +:view+ permission.
