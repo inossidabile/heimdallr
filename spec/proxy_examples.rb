@@ -5,6 +5,7 @@ def run_specs(user_model, article_model, dont_save_model)
     dont_save_model.destroy_all
 
     @john = user_model.create! :admin => false
+    @banned = user_model.create! :banned => true
     article_model.create! :owner_id => @john.id, :content => 'test', :secrecy_level => 10
     article_model.create! :owner_id => @john.id, :content => 'test', :secrecy_level => 3
   end
@@ -96,6 +97,22 @@ def run_specs(user_model, article_model, dont_save_model)
     expect {
       article_model.restrict(@looser).create! :content => 'test', :secrecy_level => 10, :dont_save => 'ok' rescue nil
     }.not_to change(dont_save_model, :count)
+  end
+
+  context "when user has no rights to view" do
+    it "should not be visible" do
+      article = article_model.create! :content => 'test', :owner => @john, :secrecy_level => 0
+      article.restrict(@banned).should_not be_visible
+    end
+  end
+
+  context "when user has no rights to create" do
+    it "should not be creatable" do
+      article_model.restrict(@banned).should_not be_creatable
+      expect {
+        article_model.restrict(@banned).create! :content => 'test', :secrecy_level => 0
+      }.to raise_error
+    end
   end
 end
 

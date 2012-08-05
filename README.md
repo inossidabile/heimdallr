@@ -127,6 +127,11 @@ so please be sure that all your assignments
 are [atomic](http://docs.mongodb.org/manual/faq/developers/#how-do-i-do-transactions-and-locking-in-mongodb)
 to prevent unexpected behaviour.
 
+Also if you need to limit attributes for create, please add `_id` attribute to it,
+as it is set by Mongoid before any other attributes, and thus it's exposed to restrictions check too.
+
+So in the top example you need to change `can :create, %w(content)` to `can :create, %w(_id content)`
+
 
 Typical cases
 -------------

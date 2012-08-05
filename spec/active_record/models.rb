@@ -4,6 +4,7 @@ ActiveRecord::Base.establish_connection('test')
 
 ActiveRecord::Base.connection.create_table(:users) do |t|
   t.boolean     :admin
+  t.boolean     :banned
 end
 
 ActiveRecord::Base.connection.create_table(:dont_saves) do |t|
@@ -31,7 +32,10 @@ class ActiveRecord::Article < ActiveRecord::Base
   end
 
   restrict do |user, record|
-    if user.admin?
+    if user.banned?
+      # banned users cannot do anything
+      scope :fetch, -> { where('1=0') }
+    elsif user.admin?
       # Administrator or owner can do everything
       scope :fetch
       scope :delete

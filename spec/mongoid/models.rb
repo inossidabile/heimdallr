@@ -3,6 +3,7 @@ Mongoid.load!('tmp/mongoid.yml', :test)
 class Mongoid::User
   include Mongoid::Document
   field :admin, type: Boolean
+  field :banned, type: Boolean
 end
 
 class Mongoid::DontSave
@@ -27,7 +28,10 @@ class Mongoid::Article
   end
 
   restrict do |user, record|
-    if user.admin?
+    if user.banned?
+      # banned users cannot do anything
+      scope :fetch, proc { where('1' => 0) }
+    elsif user.admin?
       # Administrator or owner can do everything
       scope :fetch
       scope :delete
@@ -50,7 +54,7 @@ class Mongoid::Article
       end
 
       # ... and can create them with certain restrictions.
-      can :create, %w(content)
+      can :create, %w(_id content)
       can :create, {
         owner_id:      user.id,
         secrecy_level: { inclusion: { in: 0..4 } }
