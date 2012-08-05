@@ -119,6 +119,15 @@ Rails notes
 As of Rails 3.2.3 attr_accessible is in whitelist mode by default. That makes no sense when using Heimdallr. To 
 turn it off set the `config.active_record.whitelist_attributes` value to false at yours `application.rb`.
 
+Mongoid notes
+-------------
+
+Heimdallr now has support for Mongoid. But please note that MongoDB doesn't support transactions,
+so please be sure that all your assignments
+are [atomic](http://docs.mongodb.org/manual/faq/developers/#how-do-i-do-transactions-and-locking-in-mongodb)
+to prevent unexpected behaviour.
+
+
 Typical cases
 -------------
 

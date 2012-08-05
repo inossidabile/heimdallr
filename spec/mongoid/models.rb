@@ -5,6 +5,11 @@ class Mongoid::User
   field :admin, type: Boolean
 end
 
+class Mongoid::DontSave
+  include Mongoid::Document
+  field :name
+end
+
 class Mongoid::Article
   include Mongoid::Document
   include Mongoid::Timestamps
@@ -15,6 +20,11 @@ class Mongoid::Article
   belongs_to :owner, class_name: 'Mongoid::User'
 
   include Heimdallr::Model
+
+  def dont_save=(name)
+    # Just don't do this in Mongo!
+    # Mongoid::DontSave.create(:name => name)
+  end
 
   restrict do |user, record|
     if user.admin?

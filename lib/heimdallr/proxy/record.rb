@@ -74,8 +74,10 @@ module Heimdallr
     #
     # @raise [Heimdallr::PermissionError]
     def update_attributes(attributes, options={})
-      @record.assign_attributes(attributes, options)
-      save
+      try_transaction do
+        @record.assign_attributes(attributes, options)
+        save
+      end
     end
 
     # A proxy for +update_attributes!+ method.
@@ -83,8 +85,10 @@ module Heimdallr
     #
     # @raise [Heimdallr::PermissionError]
     def update_attributes!(attributes, options={})
-      @record.assign_attributes(attributes, options)
-      save!
+      try_transaction do
+        @record.assign_attributes(attributes, options)
+        save!
+      end
     end
 
     # A proxy for +save+ method which verifies all of the dirty attributes to
@@ -377,6 +381,16 @@ module Heimdallr
 
     def wrap_key(key)
       key.is_a?(Array) ? key.first : key
+    end
+
+    def try_transaction
+      if @record.respond_to?(:with_transaction_returning_status)
+        @record.with_transaction_returning_status do
+          yield
+        end
+      else
+        yield
+      end
     end
   end
 end

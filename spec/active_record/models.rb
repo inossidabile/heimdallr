@@ -6,6 +6,10 @@ ActiveRecord::Base.connection.create_table(:users) do |t|
   t.boolean     :admin
 end
 
+ActiveRecord::Base.connection.create_table(:dont_saves) do |t|
+  t.string      :name
+end
+
 ActiveRecord::Base.connection.create_table(:articles) do |t|
   t.belongs_to  :owner
   t.text        :content
@@ -15,10 +19,16 @@ end
 
 class ActiveRecord::User < ActiveRecord::Base; end
 
+class ActiveRecord::DontSave < ActiveRecord::Base; end
+
 class ActiveRecord::Article < ActiveRecord::Base
   include Heimdallr::Model
 
   belongs_to :owner, :class_name => 'ActiveRecord::User'
+
+  def dont_save=(name)
+    ActiveRecord::DontSave.create :name => name
+  end
 
   restrict do |user, record|
     if user.admin?

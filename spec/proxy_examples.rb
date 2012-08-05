@@ -1,7 +1,8 @@
-def run_specs(user_model, article_model)
+def run_specs(user_model, article_model, dont_save_model)
   before(:all) do
     user_model.destroy_all
     article_model.destroy_all
+    dont_save_model.destroy_all
 
     @john = user_model.create! :admin => false
     article_model.create! :owner_id => @john.id, :content => 'test', :secrecy_level => 10
@@ -89,6 +90,12 @@ def run_specs(user_model, article_model)
     article.restrict(@john).should be_destroyable
     article.restrict(@admin).should be_destroyable
     article.restrict(@looser).should_not be_destroyable
+  end
+
+  it "should not create anything else if it did not saved" do
+    expect {
+      article_model.restrict(@looser).create! :content => 'test', :secrecy_level => 10, :dont_save => 'ok' rescue nil
+    }.not_to change(dont_save_model, :count)
   end
 end
 
