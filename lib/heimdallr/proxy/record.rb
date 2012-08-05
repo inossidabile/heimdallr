@@ -52,10 +52,20 @@ module Heimdallr
     # @method to_param
     # @macro delegate
     delegate :to_param, :to => :@record
-    
+
     # @method to_partial_path
     # @macro delegate
     delegate :to_partial_path, :to => :@record
+
+    # @method persisted?
+    # @macro delegate
+    delegate :persisted?, :to => :@record
+
+    # @method class
+    # @macro delegate
+    # Pretend that proxy is of the same class as the record
+    # E.g. it could be used as +.class.model_name+
+    delegate :class, :to => :@record
 
     # A proxy for +attributes+ method which removes all attributes
     # without +:view+ permission.
