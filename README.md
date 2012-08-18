@@ -119,6 +119,9 @@ Rails notes
 As of Rails 3.2.3 attr_accessible is in whitelist mode by default. That makes no sense when using Heimdallr. To 
 turn it off set the `config.active_record.whitelist_attributes` value to false at yours `application.rb`.
 
+Also you can not use restricted record with form helpers, but you can call `.insecure` method to get original model,
+like this: `form_for(@user.insecure) do |f|`. Form helpers don't assign values anyway.
+
 Mongoid notes
 -------------
 

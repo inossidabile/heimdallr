@@ -61,12 +61,6 @@ module Heimdallr
     # @macro delegate
     delegate :persisted?, :to => :@record
 
-    # @method class
-    # @macro delegate
-    # Pretend that proxy is of the same class as the record
-    # E.g. it could be used as +.class.model_name+
-    delegate :class, :to => :@record
-
     # A proxy for +attributes+ method which removes all attributes
     # without +:view+ permission.
     def attributes
@@ -390,7 +384,7 @@ module Heimdallr
     end
 
     def wrap_key(key)
-      key.is_a?(Array) ? key.first : key
+      key.is_a?(Enumerable) ? key.first : key
     end
 
     def try_transaction
