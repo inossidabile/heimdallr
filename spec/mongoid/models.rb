@@ -54,7 +54,7 @@ class Mongoid::Article
       end
 
       # ... and can create them with certain restrictions.
-      can :create, %w(_id content)
+      can :create, %w(content)
       can :create, {
         owner_id:      user.id,
         secrecy_level: { inclusion: { in: 0..4 } }

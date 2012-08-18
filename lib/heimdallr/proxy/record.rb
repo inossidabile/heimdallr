@@ -336,7 +336,9 @@ module Heimdallr
       @record.changed.map(&:to_sym).each do |attribute|
         value = @record.send attribute
 
-        if fixtures.has_key? attribute
+        if action == :create and attribute == :_id and @record.class.ancestors.include?(Mongoid::Document)
+          # Everything is ok, continue (Mongoid sets _id before saving as opposed to ActiveRecord)
+        elsif fixtures.has_key? attribute
           if fixtures[attribute] != value
             raise Heimdallr::PermissionError,
                 "Attribute #{attribute} value (#{value}) is not equal to a fixture (#{fixtures[attribute]})"
