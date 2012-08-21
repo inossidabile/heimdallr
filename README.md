@@ -119,6 +119,17 @@ Rails notes
 As of Rails 3.2.3 attr_accessible is in whitelist mode by default. That makes no sense when using Heimdallr. To 
 turn it off set the `config.active_record.whitelist_attributes` value to false at yours `application.rb`.
 
+Also you can not use restricted record with form helpers, but you can call `.insecure` method to get original model,
+like this: `form_for(@user.insecure) do |f|`. Form helpers don't assign values anyway.
+
+Mongoid notes
+-------------
+
+Heimdallr now has support for Mongoid. But please note that MongoDB doesn't support transactions,
+so please be sure that all your assignments
+are [atomic](http://docs.mongodb.org/manual/faq/developers/#how-do-i-do-transactions-and-locking-in-mongodb)
+to prevent unexpected behaviour.
+
 Typical cases
 -------------
 

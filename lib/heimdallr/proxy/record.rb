@@ -52,10 +52,14 @@ module Heimdallr
     # @method to_param
     # @macro delegate
     delegate :to_param, :to => :@record
-    
+
     # @method to_partial_path
     # @macro delegate
     delegate :to_partial_path, :to => :@record
+
+    # @method persisted?
+    # @macro delegate
+    delegate :persisted?, :to => :@record
 
     # A proxy for +attributes+ method which removes all attributes
     # without +:view+ permission.
@@ -74,7 +78,7 @@ module Heimdallr
     #
     # @raise [Heimdallr::PermissionError]
     def update_attributes(attributes, options={})
-      @record.with_transaction_returning_status do
+      try_transaction do
         @record.assign_attributes(attributes, options)
         save
       end
@@ -85,7 +89,7 @@ module Heimdallr
     #
     # @raise [Heimdallr::PermissionError]
     def update_attributes!(attributes, options={})
-      @record.with_transaction_returning_status do
+      try_transaction do
         @record.assign_attributes(attributes, options)
         save!
       end
@@ -122,7 +126,7 @@ module Heimdallr
       class_eval(<<-EOM, __FILE__, __LINE__)
       def #{method}
         scope = @restrictions.request_scope(:delete)
-        if scope.where({ @record.class.primary_key => @record.to_key }).any?
+        if record_in_scope? scope
           @record.#{method}
         else
           raise PermissionError, "Deletion is forbidden"
@@ -193,9 +197,9 @@ module Heimdallr
         suffix = nil
       end
 
-      if (@record.is_a?(ActiveRecord::Reflection) &&
+      if (@record.class.respond_to?(:reflect_on_association) &&
           association = @record.class.reflect_on_association(method)) ||
-         (!@record.class.heimdallr_relations.nil? &&
+         (@record.class.heimdallr_relations.respond_to?(:include?) &&
           @record.class.heimdallr_relations.include?(normalized_method))
         referenced = @record.send(method, *args)
 
@@ -294,7 +298,7 @@ module Heimdallr
 
     def visible?
       scope = @restrictions.request_scope(:fetch)
-      scope.where({ @record.class.primary_key => @record.to_key }).any?
+      record_in_scope? scope
     end
 
     def creatable?
@@ -307,7 +311,7 @@ module Heimdallr
 
     def destroyable?
       scope = @restrictions.request_scope(:delete)
-      scope.where({ @record.class.primary_key => @record.to_key }).any?
+      record_in_scope? scope
     end
 
     protected
@@ -332,7 +336,9 @@ module Heimdallr
       @record.changed.map(&:to_sym).each do |attribute|
         value = @record.send attribute
 
-        if fixtures.has_key? attribute
+        if action == :create and attribute == :_id and @record.is_a?(Mongoid::Document)
+          # Everything is ok, continue (Mongoid sets _id before saving as opposed to ActiveRecord)
+        elsif fixtures.has_key? attribute
           if fixtures[attribute] != value
             raise Heimdallr::PermissionError,
                 "Attribute #{attribute} value (#{value}) is not equal to a fixture (#{fixtures[attribute]})"
@@ -368,6 +374,28 @@ module Heimdallr
           raise Heimdallr::InsecureOperationError,
               "Updating was not explicitly allowed"
         end
+      end
+    end
+
+    def record_in_scope?(scope)
+      scope.where(primary_key => wrap_key(@record.to_key)).any?
+    end
+
+    def primary_key
+      @record.class.respond_to?(:primary_key) ? @record.class.primary_key : :id
+    end
+
+    def wrap_key(key)
+      key.is_a?(Enumerable) ? key.first : key
+    end
+
+    def try_transaction
+      if @record.respond_to?(:with_transaction_returning_status)
+        @record.with_transaction_returning_status do
+          yield
+        end
+      else
+        yield
       end
     end
   end
