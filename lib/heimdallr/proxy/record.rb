@@ -336,7 +336,7 @@ module Heimdallr
       @record.changed.map(&:to_sym).each do |attribute|
         value = @record.send attribute
 
-        if action == :create and attribute == :_id and @record.class.ancestors.include?(Mongoid::Document)
+        if action == :create and attribute == :_id and @record.is_a?(Mongoid::Document)
           # Everything is ok, continue (Mongoid sets _id before saving as opposed to ActiveRecord)
         elsif fixtures.has_key? attribute
           if fixtures[attribute] != value
