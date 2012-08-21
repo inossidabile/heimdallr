@@ -78,7 +78,7 @@ module Heimdallr
     #
     # @param [Symbol, Array<Symbol>] actions one or more action names
     # @param [Hash<Hash, Object>] fields field restrictions
-    def can(actions, fields=@model_class.attribute_names)
+    def can(actions, fields=@model_class.to_adapter.column_names)
       Array(actions).map(&:to_sym).each do |action|
         case fields
         when Hash # a list of validations

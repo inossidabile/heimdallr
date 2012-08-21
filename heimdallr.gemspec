@@ -19,7 +19,10 @@ Gem::Specification.new do |s|
 
   s.add_runtime_dependency "activesupport", '>= 3.0.0'
   s.add_runtime_dependency "activemodel", '>= 3.0.0'
+  s.add_runtime_dependency "orm_adapter", '~> 0.4.0'
 
   s.add_development_dependency "rspec"
   s.add_development_dependency "activerecord"
+  s.add_development_dependency "mongoid"
+  s.add_development_dependency "sqlite3"
 end

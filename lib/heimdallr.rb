@@ -1,6 +1,7 @@
 require "active_support"
 require "active_support/core_ext/module/delegation"
 require "active_model"
+require "orm_adapter"
 
 # See {file:README.yard}.
 module Heimdallr
