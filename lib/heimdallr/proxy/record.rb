@@ -226,7 +226,7 @@ module Heimdallr
               "Attempt to fetch insecure association #{method}. Try #insecure"
         end
       elsif @record.respond_to? method
-        if [nil, '?'].include?(suffix)
+        if [nil, '?', '!'].include?(suffix)
           if @restrictions.allowed_fields[:view].include?(normalized_method)
             result = @record.send method, *args, &block
             if result.respond_to? :restrict
