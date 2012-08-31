@@ -6,5 +6,9 @@ require 'proxy_examples'
 describe Heimdallr::Proxy do
   context 'with Mongoid' do
     run_specs(Mongoid::User, Mongoid::Article, Mongoid::DontSave)
+
+    context 'with subclass' do
+      run_specs(Mongoid::User, Mongoid::SubArticle, Mongoid::DontSave)
+    end
   end
 end
