@@ -62,3 +62,5 @@ class Mongoid::Article
     end
   end
 end
+
+class Mongoid::SubArticle < Mongoid::Article; end
