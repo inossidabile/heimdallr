@@ -17,8 +17,13 @@ module Heimdallr
   module Model
     extend ActiveSupport::Concern
 
+    included do
+      class_attribute :heimdallr_restrictions, :instance_writer => false
+    end
+
     # Class methods for {Heimdallr::Model}. See also +ActiveSupport::Concern+.
     module ClassMethods
+
       # @overload restrict
       #   Define restrictions for a model with a DSL. See {Model} overview
       #   for DSL documentation.
@@ -33,7 +38,7 @@ module Heimdallr
       #   @return [Proxy::Collection]
       def restrict(context=nil, options={}, &block)
         if block
-          @restrictions = Evaluator.new(self, block)
+          self.heimdallr_restrictions = Evaluator.new(self, block)
         else
           Proxy::Collection.new(context, restrictions(context).request_scope(:fetch, self), options)
         end
@@ -43,7 +48,7 @@ module Heimdallr
       #
       # @return [Evaluator]
       def restrictions(context, record=nil)
-        @restrictions.evaluate(context, record)
+        heimdallr_restrictions.evaluate(context, record)
       end
 
       # @api private

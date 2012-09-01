@@ -66,3 +66,5 @@ class ActiveRecord::Article < ActiveRecord::Base
     end
   end
 end
+
+class ActiveRecord::SubArticle < ActiveRecord::Article; end
