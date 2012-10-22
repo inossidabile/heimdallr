@@ -116,7 +116,7 @@ in [Heimdallr](http://rubydoc.info/gems/heimdallr/master/Heimdallr).
 Rails notes
 -----------
 
-As of Rails 3.2.3 attr_accessible is in whitelist mode by default. That makes no sense when using Heimdallr. To 
+As of Rails 3.2.3 attr_accessible is in whitelist mode by default. That makes no sense when using Heimdallr. To
 turn it off set the `config.active_record.whitelist_attributes` value to false at yours `application.rb`.
 
 Also you can not use restricted record with form helpers, but you can call `.insecure` method to get original model,
@@ -142,6 +142,13 @@ Compatibility
 -------------
 
 Ruby 1.8 and ActiveRecord versions prior to 3.0 are not supported.
+
+I have a nice shiny pull request...
+-----------------------------------
+
+... and it involves delegating `is_a?`, `class`, `respond_to?` or a similar core method? Congratulations, you just broke one of the core assumptions others have of Ruby object. Heimdallr proxies are _duck-type_ compatible with the records; this does not, in any way, make them of the same Ruby type.
+
+Consider the pull request already rejected.
 
 Credits
 -------
