@@ -135,6 +135,10 @@ module Heimdallr
       EOM
     end
 
+    # @method respond_to?
+    # @macro delegate
+    delegate :respond_to?, :to => :@record
+
     # @method valid?
     # @macro delegate
     delegate :valid?, :to => :@record
