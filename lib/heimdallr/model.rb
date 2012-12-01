@@ -77,13 +77,27 @@ module Heimdallr
         self.heimdallr_relations ||= []
         self.heimdallr_relations  += methods.map(&:to_sym)
       end
+
+      # Builds the Proxy class that should be used to wrap this model
+      def heimdallr_proxy_class
+        return @heimdallr_proxy_class unless @heimdallr_proxy_class.blank?
+
+        record = self
+        klass  = Class.new(Heimdallr::Proxy::Record)
+
+        (class << klass; self; end).instance_eval {
+          define_method("model_name") { record.model_name }
+        }
+        
+        @heimdallr_proxy_class = klass
+      end
     end
 
     # Return a secure proxy object for this record.
     #
     # @return [Record::Proxy]
     def restrict(context, options={})
-      Proxy::Record.new(context, self, options)
+      self.class.heimdallr_proxy_class.new(context, self, options)
     end
 
     # @api private
