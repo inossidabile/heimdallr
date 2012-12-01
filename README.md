@@ -78,8 +78,8 @@ view_passed.secrecy_level
 # => nil
 
 # If only a single value is possible, it is inferred automatically:
-secure.create! content: "My second article"
-# => Article(id: 4, owner: johndoe, content: "My second article", security_level: 0)
+secure.create! content: "My second article", secrecy_level: 0
+# => Article(id: 4, owner: johndoe, content: "My second article", secrecy_level: 0)
 
 # ... and cannot be changed:
 secure.create! owner: admin, content: "I'm a haxx0r"
