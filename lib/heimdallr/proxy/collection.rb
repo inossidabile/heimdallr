@@ -253,6 +253,21 @@ module Heimdallr
       @scope
     end
 
+    # Insecurely taps method saving restricted context for the result
+    # Method (or block) is supposed to return proper relation
+    #
+    # @return [Proxy::Collection]
+    def insecurely(*args, &block)
+      if block_given?
+        result = yield @scope
+      else
+        method = args.shift
+        result = @scope.send method, *args
+      end
+
+      Proxy::Collection.new(@context, result, options_with_escape)
+    end
+
     # Describes the proxy and proxified scope.
     #
     # @return [String]
