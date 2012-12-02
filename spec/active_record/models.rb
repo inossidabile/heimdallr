@@ -25,6 +25,10 @@ class ActiveRecord::DontSave < ActiveRecord::Base; end
 class ActiveRecord::Article < ActiveRecord::Base
   include Heimdallr::Model
 
+  def self.by_id(id)
+    where(:id => id)
+  end
+
   belongs_to :owner, :class_name => 'ActiveRecord::User'
 
   def dont_save=(name)

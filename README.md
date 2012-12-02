@@ -130,6 +130,12 @@ so please be sure that all your assignments
 are [atomic](http://docs.mongodb.org/manual/faq/developers/#how-do-i-do-transactions-and-locking-in-mongodb)
 to prevent unexpected behaviour.
 
+Depending on the way you include the Mongoid gem you might sometimes meet the following error: `undefined method 'to_adapter'`. It happens when you don't require Mongoid from your bundler but do it manually on the latter stages. In such cases you need to explicitly require the following file after Mongoid was included:
+
+```ruby
+require 'orm_adapter/adapters/mongoid'
+```
+
 Typical cases
 -------------
 

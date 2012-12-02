@@ -1,3 +1,6 @@
+require 'mongoid'
+require 'orm_adapter/adapters/mongoid'
+
 Mongoid.load!('tmp/mongoid.yml', :test)
 
 class Mongoid::User
@@ -21,6 +24,10 @@ class Mongoid::Article
   belongs_to :owner, class_name: 'Mongoid::User'
 
   include Heimdallr::Model
+
+  def self.by_id(id)
+    where(:id => id)
+  end
 
   def dont_save=(name)
     # Just don't do this in Mongo!

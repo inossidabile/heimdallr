@@ -1,8 +1,8 @@
 require "active_record"
 require "sqlite3"
 require "logger"
-require "mongoid"
 require "uri"
+require "pry"
 
 require "heimdallr" # need to require heimdallr after ORMs for orm_adapter to work
 

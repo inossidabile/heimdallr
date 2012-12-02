@@ -1,4 +1,5 @@
 *.gem
+.rbx
 .bundle
 .yardoc
 Gemfile.lock
