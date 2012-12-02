@@ -80,16 +80,15 @@ module Heimdallr
 
       # Builds the Proxy class that should be used to wrap this model
       def heimdallr_proxy_class
-        return @heimdallr_proxy_class unless @heimdallr_proxy_class.blank?
+        unless @heimdallr_proxy_class
+          @heimdallr_proxy_class = Class.new(Proxy::Record) do
+            define_method :model_name do
+              record.model_name
+            end
+          end
+        end
 
-        record = self
-        klass  = Class.new(Heimdallr::Proxy::Record)
-
-        (class << klass; self; end).instance_eval {
-          define_method("model_name") { record.model_name }
-        }
-        
-        @heimdallr_proxy_class = klass
+        @heimdallr_proxy_class
       end
     end
 
