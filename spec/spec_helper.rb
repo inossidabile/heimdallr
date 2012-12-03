@@ -1,8 +1,9 @@
 require "active_record"
-require "sqlite3"
 require "logger"
 require "uri"
 require "pry"
+
+require RUBY_PLATFORM =~ /java/ ? "activerecord-jdbc-adapter" : "sqlite3"
 
 require "heimdallr" # need to require heimdallr after ORMs for orm_adapter to work
 
