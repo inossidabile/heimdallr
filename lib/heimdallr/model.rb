@@ -81,8 +81,10 @@ module Heimdallr
       # Builds the Proxy class that should be used to wrap this model
       def heimdallr_proxy_class
         unless @heimdallr_proxy_class
+          record = self
+
           @heimdallr_proxy_class = Class.new(Proxy::Record) do
-            define_method :model_name do
+            define_singleton_method :model_name do
               record.model_name
             end
           end

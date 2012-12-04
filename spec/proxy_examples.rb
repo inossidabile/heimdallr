@@ -17,6 +17,11 @@ def run_specs(user_model, article_model, dont_save_model)
     @looser = user_model.new :admin => false
   end
 
+  it "proxies model_name" do
+    article_model.restrict(@admin).first.class.model_name.should ==
+            article_model.model_name
+  end
+
   it "applies restrictions" do
     proxy = article_model.restrict(@admin)
     proxy.should be_a_kind_of Heimdallr::Proxy::Collection
