@@ -17,8 +17,13 @@ def run_specs(user_model, article_model, dont_save_model)
     @looser = user_model.new :admin => false
   end
 
-  it "proxies model_name" do
+  it "proxies model_name for records" do
     article_model.restrict(@admin).first.class.model_name.should ==
+            article_model.model_name
+  end
+
+  it "proxies model_name for collections" do
+    article_model.restrict(@admin).model_name.should ==
             article_model.model_name
   end
 

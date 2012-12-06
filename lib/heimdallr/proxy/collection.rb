@@ -122,6 +122,7 @@ module Heimdallr
     delegate_as_scope :reverse_order
     delegate_as_scope :extending
 
+    delegate_as_value :model_name
     delegate_as_value :empty?
     delegate_as_value :any?
     delegate_as_value :many?
