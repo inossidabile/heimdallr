@@ -5,6 +5,7 @@ ActiveRecord::Base.establish_connection('test')
 ActiveRecord::Base.connection.create_table(:users) do |t|
   t.boolean     :admin
   t.boolean     :banned
+  t.belongs_to  :dude
 end
 
 ActiveRecord::Base.connection.create_table(:dont_saves) do |t|
@@ -18,7 +19,14 @@ ActiveRecord::Base.connection.create_table(:articles) do |t|
   t.timestamps
 end
 
-class ActiveRecord::User < ActiveRecord::Base; end
+class ActiveRecord::User < ActiveRecord::Base
+  include Heimdallr::Model
+  has_one :buddy, :class_name => self.name, :foreign_key => :dude_id
+  belongs_to :dude, :class_name => self.name
+  restrict do |user|
+    scope :fetch
+  end
+end
 
 class ActiveRecord::DontSave < ActiveRecord::Base; end
 

@@ -4,3 +4,4 @@ test:
       database: heimdallr_test
       hosts:
         - localhost:27017
+  database: heimdallr_test

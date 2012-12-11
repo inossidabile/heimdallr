@@ -1,12 +1,20 @@
 require 'mongoid'
 require 'orm_adapter/adapters/mongoid'
 
-Mongoid.load!('tmp/mongoid.yml', :test)
+ENV['RACK_ENV'] ||= 'test'
+Mongoid.load!('tmp/mongoid.yml')
 
 class Mongoid::User
   include Mongoid::Document
   field :admin, type: Boolean
   field :banned, type: Boolean
+  field :dude_id, type: String
+  include Heimdallr::Model
+  has_one :buddy, :class_name => self.name, :foreign_key => :dude_id
+  belongs_to :dude, :class_name => self.name
+  restrict do |user|
+    scope :fetch
+  end
 end
 
 class Mongoid::DontSave
@@ -61,7 +69,7 @@ class Mongoid::Article
       end
 
       # ... and can create them with certain restrictions.
-      can :create, %w(content)
+      can :create, %w(content _type)
       can :create, {
         owner_id:      user.id,
         secrecy_level: { inclusion: { in: 0..4 } }

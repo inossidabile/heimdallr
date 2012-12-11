@@ -193,10 +193,17 @@ module Heimdallr
         suffix = nil
       end
 
-      if (@record.class.respond_to?(:reflect_on_association) &&
-          association = @record.class.reflect_on_association(method)) ||
-         (@record.class.heimdallr_relations.respond_to?(:include?) &&
-          @record.class.heimdallr_relations.include?(normalized_method))
+      builder_method = method.to_s.gsub(/\Abuild_/, '').to_sym
+      association = if @record.class.respond_to?(:reflect_on_association)
+        @record.class.reflect_on_association(method) ||
+          @record.class.reflect_on_association(builder_method)
+      end
+      pass = unless association
+        @record.class.heimdallr_relations.respond_to?(:include?) &&
+          @record.class.heimdallr_relations.include?(normalized_method)
+      end
+
+      if association || pass
         referenced = @record.send(method, *args)
 
         if referenced.nil?
@@ -208,7 +215,7 @@ module Heimdallr
             options = @options
           end
 
-          if association.collection? && @eager_loaded.include?(method)
+          if association && association.collection? && @eager_loaded.include?(method)
             # Don't re-restrict eagerly loaded collections to not
             # discard preloaded data.
             Proxy::Collection.new(@context, referenced, options)
@@ -378,7 +385,7 @@ module Heimdallr
     end
 
     def primary_key
-      @record.class.respond_to?(:primary_key) ? @record.class.primary_key : :id
+      @record.class.respond_to?(:primary_key) && @record.class.primary_key || :id
     end
 
     def wrap_key(key)

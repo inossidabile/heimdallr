@@ -76,6 +76,13 @@ def run_specs(user_model, article_model, dont_save_model)
     article.owner_id.should == @john.id
   end
 
+  it "handles entities building" do
+    [:build_buddy, :build_dude].map{|m| @john.restrict(@john).send(m) }.each do |obj|
+      obj.should be_a(Heimdallr::Proxy::Record)
+      obj.reflect_on_security[:context].should === @john
+    end
+  end
+
   it "handles entities update" do
     article = article_model.create! :owner_id => @john.id, :content => 'test', :secrecy_level => 10
     expect {
