@@ -5,6 +5,8 @@ Heimdallr is a gem for managing security restrictions for ActiveRecord objects o
 of it as a supercharged [CanCan](https://github.com/ryanb/cancan). Heimdallr favors whitelisting over blacklisting,
 convention over configuration and is duck-type compatible with most of existing code.
 
+![Travis CI](https://secure.travis-ci.org/roundlake/heimdallr.png)
+
 ``` ruby
 # Define a typical set of models.
 class User < ActiveRecord::Base
