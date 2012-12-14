@@ -20,4 +20,6 @@ Gem::Specification.new do |s|
   s.add_runtime_dependency "activesupport", '>= 3.0.0'
   s.add_runtime_dependency "activemodel", '>= 3.0.0'
   s.add_runtime_dependency "orm_adapter", '~> 0.4.0'
+
+  s.add_development_dependency "rake"
 end
