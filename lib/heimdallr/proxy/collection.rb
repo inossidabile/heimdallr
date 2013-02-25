@@ -52,7 +52,7 @@ module Heimdallr
     # @macro [attach] delegate_as_scope
     #   A proxy for +$1+ method which returns a restricted scope.
     def self.delegate_as_scope(name, conversion=false)
-      conversion = conversion.blank? ? '' : "set = set.send(:#{conversion})"
+      conversion = conversion ? "set = set.send(:#{conversion})" : ''
 
       class_eval(<<-EOM, __FILE__, __LINE__)
       def #{name}(*args)
@@ -88,7 +88,7 @@ module Heimdallr
     # @macro [attach] delegate_as_records
     #   A proxy for +$1+ method which returns an array of restricted records.
     def self.delegate_as_records(name, conversion=false)
-      conversion = conversion.blank? ? '' : "set = set.send(:#{conversion})"
+      conversion = conversion ? "set = set.send(:#{conversion})" : ''
 
       class_eval(<<-EOM, __FILE__, __LINE__)
       def #{name}(*args)
