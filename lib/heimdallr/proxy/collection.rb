@@ -51,10 +51,13 @@ module Heimdallr
     # @private
     # @macro [attach] delegate_as_scope
     #   A proxy for +$1+ method which returns a restricted scope.
-    def self.delegate_as_scope(name)
+    def self.delegate_as_scope(name, conversion=false)
+      conversion = conversion.blank? ? '' : "set = set.send(:#{conversion})"
+
       class_eval(<<-EOM, __FILE__, __LINE__)
       def #{name}(*args)
-        Proxy::Collection.new(@context, @scope.#{name}(*args), options_with_escape)
+        set = @scope.#{name}(*args); #{conversion}
+        Proxy::Collection.new(@context, set, options_with_escape)
       end
       EOM
     end
@@ -84,10 +87,14 @@ module Heimdallr
     # @private
     # @macro [attach] delegate_as_records
     #   A proxy for +$1+ method which returns an array of restricted records.
-    def self.delegate_as_records(name)
+    def self.delegate_as_records(name, conversion=false)
+      conversion = conversion.blank? ? '' : "set = set.send(:#{conversion})"
+
       class_eval(<<-EOM, __FILE__, __LINE__)
       def #{name}(*args)
-        @scope.#{name}(*args).map do |element|
+        set = @scope.#{name}(*args); #{conversion}
+
+        set.map do |element|
           element.restrict(@context, options_with_eager_load)
         end
       end
@@ -122,6 +129,7 @@ module Heimdallr
     delegate_as_scope :reverse_order
     delegate_as_scope :extending
 
+    delegate_as_value :klass
     delegate_as_value :model_name
     delegate_as_value :empty?
     delegate_as_value :any?
