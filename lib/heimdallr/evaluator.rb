@@ -51,7 +51,9 @@ module Heimdallr
         raise "There is no such scope as #{name}"
       end
 
-      @scopes[name] = explicit_block || implicit_block || -> { scoped }
+      @scopes[name] = explicit_block ||
+                      implicit_block ||
+                      -> { kind_of?(ActiveRecord::Relation) ? self : all }
     end
 
     # Define allowed operations for action(s).

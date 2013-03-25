@@ -73,23 +73,27 @@ module Heimdallr
     # See also {#save}.
     #
     # @raise [Heimdallr::PermissionError]
-    def update_attributes(attributes, options={})
+    def update_attributes(attributes)
       try_transaction do
-        @record.assign_attributes(attributes, options)
+        @record.assign_attributes(attributes)
         save
       end
     end
+    
+    alias update update_attributes
 
     # A proxy for +update_attributes!+ method.
     # See also {#save!}.
     #
     # @raise [Heimdallr::PermissionError]
-    def update_attributes!(attributes, options={})
+    def update_attributes!(attributes)
       try_transaction do
-        @record.assign_attributes(attributes, options)
+        @record.assign_attributes(attributes)
         save!
       end
     end
+    
+    alias update! update_attributes!
 
     # A proxy for +save+ method which verifies all of the dirty attributes to
     # be valid for current security context.
@@ -215,7 +219,7 @@ module Heimdallr
             options = @options
           end
 
-          if association && association.collection? && @eager_loaded.include?(method)
+          if association && association.respond_to?(:collection?) && association.collection? && @eager_loaded.include?(method)
             # Don't re-restrict eagerly loaded collections to not
             # discard preloaded data.
             Proxy::Collection.new(@context, referenced, options)

@@ -159,7 +159,7 @@ module Heimdallr
     #
     # @return ActiveRecord scope
     def scoped_model
-      self.model.scoped
+      self.model.all
     end
 
     # Return the scoped and restricted model. By default this method
