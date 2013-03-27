@@ -255,6 +255,13 @@ module Heimdallr
       end
     end
 
+    def respond_to?(method)
+      super                                                                 ||
+      method =~ /^find_(all_)?_by/                                          ||
+      (@scope.heimdallr_scopes && @scope.heimdallr_scopes.include?(method)) ||
+      @scope.respond_to?(method)
+    end
+
     # Return the underlying scope.
     #
     # @return ActiveRecord scope

@@ -196,16 +196,8 @@ module Heimdallr
         normalized_method = method
         suffix = nil
       end
-
-      builder_method = method.to_s.gsub(/\Abuild_/, '').to_sym
-      association = if @record.class.respond_to?(:reflect_on_association)
-        @record.class.reflect_on_association(method) ||
-          @record.class.reflect_on_association(builder_method)
-      end
-      pass = unless association
-        @record.class.heimdallr_relations.respond_to?(:include?) &&
-          @record.class.heimdallr_relations.include?(normalized_method)
-      end
+      
+      association, pass = method_associations(method)
 
       if association || pass
         referenced = @record.send(method, *args)
@@ -255,6 +247,14 @@ module Heimdallr
       else
         super
       end
+    end
+
+    def respond_to?(method)
+      return true if super
+      
+      association, pass = method_associations(method)
+      
+      association || pass || @record.respond_to?(method)
     end
 
     # Return the underlying object.
@@ -405,5 +405,22 @@ module Heimdallr
         yield
       end
     end
+
+    private
+
+    def method_associations(method)
+      builder_method = method.to_s.gsub(/\Abuild_/, '').to_sym
+      association = if @record.class.respond_to?(:reflect_on_association)
+        @record.class.reflect_on_association(method) ||
+          @record.class.reflect_on_association(builder_method)
+      end
+      pass = unless association
+        @record.class.heimdallr_relations.respond_to?(:include?) &&
+          @record.class.heimdallr_relations.include?(normalized_method)
+      end
+
+      [ association, pass ]
+    end
+
   end
 end
