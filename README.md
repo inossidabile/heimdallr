@@ -1,3 +1,10 @@
+WARNING
+=======
+
+**Heimdallr is still supported but is not under development anymore. Please check out its successor – the [Protector](http://github.com/inossidabile/protector).**
+
+Also you might want to read [the article describing the reasons](http://staal.io/blog/2013/06/04/the-protector/) for this fork and actual changes.
+
 Heimdallr
 =========
 
