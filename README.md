@@ -166,14 +166,13 @@ I have a nice shiny pull request...
 
 Consider the pull request already rejected.
 
-Credits
+Maintainers
 -------
 
-* Peter Zotov ([@whitequark](http://twitter.com/whitequark)) [![endorse](http://api.coderwall.com/whitequark/endorsecount.png)](http://coderwall.com/inossidabile)
-* Boris Staal ([@_inossidabile](http://twitter.com/_inossidabile)) [![endorse](http://api.coderwall.com/inossidabile/endorsecount.png)](http://coderwall.com/inossidabile)
-* Alexander Pavlenko ([@alerticus](https://twitter.com/alerticus))
+* Peter Zotov, [@whitequark](http://twitter.com/whitequark)
+* Boris Staal, [@inossidabile](http://staal.io)
 
-LICENSE
+License
 -------
 
 It is free software, and may be redistributed under the terms of MIT license.
