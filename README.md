@@ -15,6 +15,7 @@ convention over configuration and is duck-type compatible with most of existing 
 [![Gem Version](https://badge.fury.io/rb/heimdallr.png)](http://badge.fury.io/rb/heimdallr)
 [![Travis CI](https://secure.travis-ci.org/roundlake/heimdallr.png)](https://travis-ci.org/inossidabile/heimdallr)
 [![Code Climate](https://codeclimate.com/github/inossidabile/heimdallr.png)](https://codeclimate.com/github/inossidabile/heimdallr)
+[![Bitdeli Badge](https://d2weczhvl823v0.cloudfront.net/inossidabile/heimdallr/trend.png)](https://bitdeli.com/free "Bitdeli Badge")
 
 ``` ruby
 # Define a typical set of models.
